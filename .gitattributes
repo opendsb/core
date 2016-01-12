@@ -1,0 +1,10 @@
+# Detect text files automatically
+* text=auto
+
+# Force Unix-style line endings on these files
+user-data* text eol=lf
+*.sh text eol=lf
+*.xml text eol=lf
+*.bash_profile text eol=lf
+config-or-run-app eol=lf
+bin/runjava8app eol=lf
