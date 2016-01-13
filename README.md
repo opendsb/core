@@ -9,11 +9,10 @@ OpenDSB is a distributed Open-Source Service Bus.
 OpenDSB is an open source, distributed publish-subscribe messaging system, 
 mainly designed with the following characteristics:
 
-* Persistent messaging: To derive the real value from big data, any kind of information loss cannot be afforded. OpenDSB is designed with O(1) disk structures that provide constant-time performance even with very large volumes of stored messages, which is in order of TB.
 * High throughput: Keeping big data in mind, OpenDSB is designed to work on commodity hardware and to support millions of messages per second.
 * Distributed: OpenDSB explicitly supports messages partitioning over OpenDSB servers and distributing consumption over a cluster of consumer machines while maintaining per-partition ordering semantics.
 * Multiple client support: OpenDSB system supports easy integration of clients from different platforms such as Java, JavaScript and Golang.
-* Real time: Messages produced by the producer threads should be immediately visible to consumer threads; this feature is critical to event-based systems such as Complex Event Processing (CEP) systems.
+* Real time: Messages produced by the producer threads should be immediately visible to consumer threads; this feature is critical to event-based systems such as [Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing) systems.
 
 In the present big data era, the very first challenge is to collect the data 
 as it is a huge amount of data and the second challenge is to analyze it.
