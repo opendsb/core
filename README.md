@@ -48,3 +48,19 @@ It provides plenty productivity in the typical development workflow.
     cd core
     ./build-opendsb
 
+#### Running the container 
+
+    docker run -i -t --rm --name dsb parana/opendsb
+
+Now you can invoke `jshell` and run some commands:
+
+    /imports
+    /methods
+    /help
+
+and so on.
+
+To quit use the `/exit` jshell command.
+
+
+
