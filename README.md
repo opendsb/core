@@ -35,8 +35,16 @@ TBD
 ### Docker Image
 
 We have an image that includes Java **OpenJDK 9**, build 96 
-Available in https://jdk9.java.net/download/ with **REPL** 
+(available in https://jdk9.java.net/download/) with **REPL** 
 support via **jshell**
 
 This image allows you to work in the Service Bus as if it were in a playground.
 It provides plenty productivity in the typical development workflow.
+
+#### Building the image
+
+    mkdir opendsb && cd opendsb
+    git clone git@github.com:opendsb/core.git
+    cd core
+    ./build-opendsb
+
