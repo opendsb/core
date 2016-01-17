@@ -90,18 +90,20 @@ https://github.com/heroku/heroku-cli is client written in Golang
     heroku login
     java -cp target/classes:target/dependency/* Main
 
-##### Running Locally
+##### Running Locally inside the container
 
-Make sure you have Java and Maven installed.  Also, install the [Heroku Toolbelt](https://toolbelt.heroku.com/).
+Make sure you have Java and Maven installed.
+Also, install the [Heroku Toolbelt](https://toolbelt.heroku.com/).
 
 ```sh
 mvn install
-foreman start web
+foreman start web # this run only on Linux
 ```
 
 Your app should now be running on [localhost:5000](http://localhost:5000/).
 
-If you're going to use a database, ensure you have a local `.env` file that reads something like this:
+If you're going to use a database, ensure you have a local `.env` 
+file that reads something like this:
 
 ```
 DATABASE_URL=postgres://localhost:5432/java_database_name
@@ -110,9 +112,14 @@ DATABASE_URL=postgres://localhost:5432/java_database_name
 ## Deploying to Heroku
 
 ```sh
-$ heroku create
-$ git push heroku master
-$ heroku open
+heroku create opendsb --buildpack heroku/java
+git add .
+git commit -m "Heroku Support"
+# pom.xml must appear on git list files command
+git ls-files | grep pom.xml
+git push heroku master
+# this command open https://opendsb.herokuapp.com in your Safari browser
+heroku open
 ```
 
 ## Documentation
