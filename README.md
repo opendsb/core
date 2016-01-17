@@ -64,6 +64,11 @@ It provides plenty productivity in the typical development workflow.
     cd core
     ./build-opendsb
 
+#### Protecting passwords and credentials 
+
+    touch .credentials
+    # edit file with your preferred editor. This file is listed in .gitignore
+
 #### Running the container 
 
     docker run -i -t --rm --name dsb parana/opendsb
