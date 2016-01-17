@@ -1,4 +1,5 @@
 .credentials
+.env
 .settings
 .classpath
 target/
