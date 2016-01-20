@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+  <body>
+    <!-- Example based on this Java Classes:
+         https://github.com/GeertjanWielenga/BowerPOM/tree/master/src/main/java
+    -->
+    <table border="1">
+      <thead>
+        <tr>
+          <th>CITY</th>
+          <th>PHONE</th>
+          <th>NAME</th>
+          <th>ADDRESSLINE2</th>
+          <th>CREDITLIMIT</th>
+          <th>ADDRESSLINE1</th>
+          <th>STATE</th>
+          <th>FAX</th>
+          <th>EMAIL</th>
+        </tr>
+      </thead>
+      <tbody data-bind="foreach: items">
+        <tr>
+          <td data-bind="text: city"/>
+          <td data-bind="text: phone"/>
+          <td data-bind="text: name"/>
+          <td data-bind="text: addressline2"/>
+          <td data-bind="text: creditLimit"/>
+          <td data-bind="text: addressline1"/>
+          <td data-bind="text: state"/>
+          <td data-bind="text: fax"/>
+          <td data-bind="text: email"/>
+        </tr>
+      </tbody>
+    </table>
+    <script src="bower_components/jquery/dist/jquery.min.js" type="text/javascript"></script>
+    <script src="bower_components/knockout/dist/knockout.js" type="text/javascript"></script>
+    <script src='customers.js'></script>
+  </body>
+</html>

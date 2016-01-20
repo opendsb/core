@@ -1,0 +1,15 @@
+{
+  "name": "BowerJavaEE",
+  "version": "1.0.0",
+  "main": "path/to/main.css",
+  "ignore": [
+    ".jshintrc",
+    "**/*.txt"
+  ],
+  "dependencies": {
+    "knockout": "3.4.0",
+    "jquery": "2.1.4"
+  },
+  "devDependencies": {}
+}
+
