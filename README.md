@@ -83,24 +83,28 @@ and so on.
 
 To quit use the `/exit` jshell command.
 
-#### Running on Heroku
+### Running opendsb using Heroku to provide Continuos Delivery
+
+This Workflow is very productive.
 
 https://github.com/heroku/heroku-cli is client written in Golang
 
     heroku login
-    java -cp target/classes:target/dependency/* Main
 
-##### Running Locally inside the container
+#### Running Locally
 
 Make sure you have Java and Maven installed.
 Also, install the [Heroku Toolbelt](https://toolbelt.heroku.com/).
 
 ```sh
 mvn install
-foreman start web # this run only on Linux
+java -cp target/classes:target/dependency/* Main
+http://localhost:9095/
+# You can use foreman, but this run only on Linux
+# foreman start web 
 ```
 
-Your app should now be running on [localhost:5000](http://localhost:5000/).
+Your app should now be running on [localhost:9095](http://localhost:9095/).
 
 If you're going to use a database, ensure you have a local `.env` 
 file that reads something like this:
