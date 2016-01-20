@@ -85,6 +85,8 @@ To quit use the `/exit` jshell command.
 
 ### Running opendsb using Heroku to provide Continuos Delivery
 
+We will use [Spark Template Engine](https://github.com/perwendel/spark) in our examples. 
+
 This Workflow is very productive.
 
 https://github.com/heroku/heroku-cli is client written in Golang
@@ -113,7 +115,7 @@ file that reads something like this:
 DATABASE_URL=postgres://localhost:5432/java_database_name
 ```
 
-## Deploying to Heroku
+#### Deploying to Heroku
 
 ```sh
 heroku create opendsb --buildpack heroku/java
@@ -126,7 +128,7 @@ git push heroku master
 heroku open
 ```
 
-## Documentation
+#### Documentation
 
 For more information about using Java on Heroku, see these Dev Center articles:
 
