@@ -133,3 +133,11 @@ heroku open
 For more information about using Java on Heroku, see these Dev Center articles:
 
 - [Java on Heroku](https://devcenter.heroku.com/categories/java)
+
+
+## Issues
+
+Enter issue using Markdown Githug flavored
+
+![markdown help](https://raw.githubusercontent.com/opendsb/core/master/docs/img/markdown-help.png)
+
