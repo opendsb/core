@@ -137,7 +137,7 @@ For more information about using Java on Heroku, see these Dev Center articles:
 
 ## Issues
 
-Enter issue using Markdown Githug flavored
+Enter issue using GitHub flavored Markdown (github-flavored-markdown)
 
 ![markdown help](https://raw.githubusercontent.com/opendsb/core/master/docs/img/markdown-help.png)
 
