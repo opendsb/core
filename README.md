@@ -2,9 +2,7 @@
 
 [![Join the chat at https://gitter.im/opendsb/core](https://badges.gitter.im/opendsb/core.svg)](https://gitter.im/opendsb/core?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-OpenDSB is a distributed Open-Source Service Bus. 
-
-[![Gitter](https://badges.gitter.im/opendsb/core.svg)](https://gitter.im/opendsb/core?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+**OpenDSB is a distributed Open-Source Service Bus**. 
 
 ## Introdution
 
