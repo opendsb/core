@@ -8,11 +8,11 @@ import org.opendsb.routing.RouteNode;
 public class Subscription implements Comparable<Subscription> {
 
 	private String topic;
-	
+
 	private RouteNode node;
-	
+
 	private HandlerPriority priority;
-	
+
 	private Consumer<Message> consumer;
 
 	public Subscription(String topic, RouteNode node, Consumer<Message> consumer) {
@@ -23,8 +23,7 @@ public class Subscription implements Comparable<Subscription> {
 		this.priority = HandlerPriority.NORMAL;
 	}
 
-	public Subscription(String topic, RouteNode node, Consumer<Message> consumer,
-			HandlerPriority priority) {
+	public Subscription(String topic, RouteNode node, Consumer<Message> consumer, HandlerPriority priority) {
 		super();
 		this.node = node;
 		this.topic = topic;
@@ -51,7 +50,7 @@ public class Subscription implements Comparable<Subscription> {
 	public void setPriority(HandlerPriority priority) {
 		this.priority = priority;
 	}
-	
+
 	public void cancel() {
 		node.cancelSubscription(this);
 	}

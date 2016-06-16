@@ -2,7 +2,7 @@ package org.opendsb.messaging;
 
 import java.util.UUID;
 
-import org.dsb.json.AnnotationExclusion;
+import org.opendsb.json.AnnotationExclusion;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -10,22 +10,22 @@ import com.google.gson.GsonBuilder;
 public abstract class BaseMessage implements Message {
 
 	private String messageId = UUID.randomUUID().toString();
-	
+
 	protected MessageType type;
-	
+
 	private String origin;
-	
+
 	private String destination;
-	
+
 	private String latestHop;
-	
+
 	public BaseMessage(String destination, String origin) {
 		super();
 		this.origin = origin;
 		this.latestHop = origin;
 		this.destination = destination;
 	}
-	
+
 	public BaseMessage(String origin) {
 		super();
 		this.origin = origin;
@@ -46,7 +46,7 @@ public abstract class BaseMessage implements Message {
 	public MessageType getType() {
 		return type;
 	}
-	
+
 	@Override
 	public String getOrigin() {
 		return origin;
@@ -64,14 +64,12 @@ public abstract class BaseMessage implements Message {
 
 	@Override
 	public String toJSON() {
-		Gson gson = new GsonBuilder().setExclusionStrategies(
-				new AnnotationExclusion()).create();
+		Gson gson = new GsonBuilder().setExclusionStrategies(new AnnotationExclusion()).create();
 		return gson.toJson(this);
 	}
-	
+
 	@Override
 	public String toString() {
-		return "BaseMessage [messageId=" + messageId + ", type=" + type
-				+ ", destination=" + destination + "]";
+		return "BaseMessage [messageId=" + messageId + ", type=" + type + ", destination=" + destination + "]";
 	}
 }

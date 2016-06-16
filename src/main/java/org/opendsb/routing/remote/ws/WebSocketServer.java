@@ -10,9 +10,9 @@ import org.opendsb.routing.remote.RemotePeer;
 import org.opendsb.routing.remote.RemoteRouterServer;
 
 public class WebSocketServer extends Endpoint {
-	
+
 	private static final Logger logger = Logger.getLogger(WebSocketServer.class);
-	
+
 	private RemoteRouterServer router;
 
 	public WebSocketServer(RemoteRouterServer router) {
@@ -29,8 +29,8 @@ public class WebSocketServer extends Endpoint {
 
 	@Override
 	public void onClose(Session session, CloseReason closeReason) {
-		logger.info("Connection to peer closed. Session id '" + session.getId()
-				+ "'. Reason code '"+ closeReason.getCloseCode() + "' reason phrase '" + closeReason.getReasonPhrase() + "'");
+		logger.info("Connection to peer closed. Session id '" + session.getId() + "'. Reason code '"
+				+ closeReason.getCloseCode() + "' reason phrase '" + closeReason.getReasonPhrase() + "'");
 		// Search peer using the session Id.
 		RemotePeer peer = router.findPeerByConnectionId(session.getId());
 		if (peer != null) {

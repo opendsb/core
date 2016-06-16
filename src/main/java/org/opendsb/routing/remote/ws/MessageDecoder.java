@@ -48,8 +48,7 @@ public class MessageDecoder implements Decoder.Text<Message> {
 	@Override
 	public boolean willDecode(String jsonMessage) {
 
-		logger.info("Trying to assertain validity for the message '"
-				+ jsonMessage + "'.");
+		logger.info("Trying to assertain validity for the message '" + jsonMessage + "'.");
 
 		boolean willDecode = true;
 
@@ -63,8 +62,7 @@ public class MessageDecoder implements Decoder.Text<Message> {
 		return willDecode;
 	}
 
-	public static Message doDecoding(String jsonMessage)
-			throws JsonSyntaxException {
+	public static Message doDecoding(String jsonMessage) throws JsonSyntaxException {
 
 		Message message = null;
 
@@ -76,8 +74,7 @@ public class MessageDecoder implements Decoder.Text<Message> {
 
 		if (obj.has("type")) {
 
-			MessageType type = gson
-					.fromJson(obj.get("type"), MessageType.class);
+			MessageType type = gson.fromJson(obj.get("type"), MessageType.class);
 
 			switch (type) {
 

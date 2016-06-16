@@ -4,12 +4,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.dsb.pattern.composite.Composite;
+import org.opendsb.pattern.composite.Composite;
 
-public class CompositeRouteNode extends RouteNode implements Composite<RouteNode>{
+public class CompositeRouteNode extends RouteNode implements Composite<RouteNode> {
 
 	private Set<RouteNode> children = new HashSet<>();
-	
+
 	public CompositeRouteNode(String nodeId) {
 		super(nodeId);
 	}
@@ -18,14 +18,14 @@ public class CompositeRouteNode extends RouteNode implements Composite<RouteNode
 	public Stream<RouteNode> getChildren() {
 		return children.stream();
 	}
-	
+
 	public boolean addChild(RouteNode child) {
 		boolean added = children.add(child);
-		
+
 		if (added) {
 			child.setParent(this);
 		}
-		
+
 		return added;
 	}
 }

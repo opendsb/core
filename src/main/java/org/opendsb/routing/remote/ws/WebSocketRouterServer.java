@@ -9,26 +9,21 @@ import org.opendsb.routing.Router;
 import org.opendsb.routing.remote.RemoteRouterServer;
 
 public class WebSocketRouterServer extends RemoteRouterServer {
-	
+
 	private String path;
 	private ServerContainer container;
-	
-	private ServerEndpointConfig config;
-	
 
-	public WebSocketRouterServer(Router localRouter, String path, 
-			ServerContainer container) {
+	private ServerEndpointConfig config;
+
+	public WebSocketRouterServer(Router localRouter, String path, ServerContainer container) {
 		super(localRouter);
 		this.path = path;
 		this.container = container;
-		this.config = ServerEndpointConfig.Builder
-				.create(WebSocketServer.class, path)
-				.decoders(Arrays.asList(MessageDecoder.class))
-				.encoders(Arrays.asList(MessageEncoder.class))
-				.configurator(new ServerConfigurator(this))
-				.build();
+		this.config = ServerEndpointConfig.Builder.create(WebSocketServer.class, path)
+				.decoders(Arrays.asList(MessageDecoder.class)).encoders(Arrays.asList(MessageEncoder.class))
+				.configurator(new ServerConfigurator(this)).build();
 	}
-	
+
 	public String getPath() {
 		return path;
 	}

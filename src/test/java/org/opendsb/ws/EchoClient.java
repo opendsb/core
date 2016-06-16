@@ -1,4 +1,4 @@
-package org.dsb.ws;
+package org.opendsb.ws;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
@@ -14,15 +14,15 @@ public class EchoClient {
 	public void open(Session session) {
 		System.out.println("Connecting to server with session id '" + session.getId() + "'");
 	}
-	
+
 	@OnMessage
 	public void message(String message) {
 		System.out.println("Receiving message: " + message);
 	}
-	
+
 	@OnClose
 	public void close(Session session, CloseReason reason) {
-		
+
 	}
-	
+
 }

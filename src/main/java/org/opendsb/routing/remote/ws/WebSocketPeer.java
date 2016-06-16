@@ -18,47 +18,48 @@ import org.opendsb.routing.remote.RemotePeer;
 import org.opendsb.routing.remote.RemoteRouter;
 
 public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<Message> {
-	
+
 	private static final Logger logger = Logger.getLogger(WebSocketPeer.class);
-	
+
 	private Session session = null;
-	
+
 	public WebSocketPeer(String address, RemoteRouter router) {
 		super(address, router);
 	}
-	
+
 	public WebSocketPeer(RemoteRouter router, Session session) {
 		super("", router);
 		this.session = session;
 		this.connectionId = session.getId();
 	}
-	
+
 	@Override
-	public void connect() throws IOException  {
-		
+	public void connect() throws IOException {
+
 		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-		
+
 		WebSocketClient wsc = new WebSocketClient(this);
-		
-		while(session == null) {
+
+		while (session == null) {
 			try {
-				ClientEndpointConfig cec = ClientEndpointConfig.Builder
-						.create().decoders(Arrays.asList(MessageDecoder.class))
-						.encoders(Arrays.asList(MessageEncoder.class)).build();
+				ClientEndpointConfig cec = ClientEndpointConfig.Builder.create()
+						.decoders(Arrays.asList(MessageDecoder.class)).encoders(Arrays.asList(MessageEncoder.class))
+						.build();
 				session = container.connectToServer(wsc, cec, address);
 				connectionId = session.getId();
 				router.addPendingPeer(this);
 				logger.info("Connection established to '" + address.toString() + "'");
-			} catch(DeploymentException e) {
+			} catch (DeploymentException e) {
 				logger.debug("Error trying to setup a remote websocket connection.", e);
-				throw new IOException("Unable to create a connection to the remote peer '" + address.toString() + "'.", e);
+				throw new IOException("Unable to create a connection to the remote peer '" + address.toString() + "'.",
+						e);
 			} catch (IOException | IllegalStateException e) {
 				logger.debug("Error trying to setup a remote websocket connection. Retrying ...");
 				logger.trace("Connection failure reason", e);
 			}
 		}
 	}
-	
+
 	public void onClose(Session session, CloseReason closeReason) {
 		try {
 			router.removePeer(this);
@@ -93,6 +94,5 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<Me
 			logger.debug("Error closing connection", e);
 		}
 	}
-	
-	
+
 }

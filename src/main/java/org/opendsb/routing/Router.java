@@ -8,7 +8,10 @@ import org.opendsb.routing.remote.RemoteRouter;
 
 public interface Router {
 	public String getId();
+
 	public void setRemoteRouter(RemoteRouter remoteRouter);
+
 	public void routeMessage(Message message, boolean remote);
-	public Subscription subscribe(String topic,  Consumer<Message> handler, HandlerPriority priority);
+
+	public Subscription subscribe(String topic, Consumer<Message> handler, HandlerPriority priority);
 }

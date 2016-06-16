@@ -15,19 +15,19 @@ import org.opendsb.messaging.Subscription;
 
 @SuppressWarnings("unchecked")
 public class MessageFuture<T extends Message> implements Future<T>, Consumer<T> {
-	
+
 	private BlockingQueue<T> waitingQueue = new ArrayBlockingQueue<>(1);
-	
+
 	private Set<Thread> blockedThreads = new HashSet<>();
-	
+
 	private boolean done;
-	
+
 	private boolean cancelled;
-	
+
 	private Subscription replySubscription;
-	
+
 	public MessageFuture(BusClient busClient, String replyTopic) {
-		this.replySubscription = busClient.subscribe(replyTopic, (Consumer<Message>)this);
+		this.replySubscription = busClient.subscribe(replyTopic, (Consumer<Message>) this);
 	}
 
 	@Override
@@ -64,8 +64,7 @@ public class MessageFuture<T extends Message> implements Future<T>, Consumer<T> 
 	}
 
 	@Override
-	public T get(long timeout, TimeUnit unit)
-			throws InterruptedException, ExecutionException, TimeoutException {
+	public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
 		T repl = null;
 		Thread ct = Thread.currentThread();
 		blockedThreads.add(ct);

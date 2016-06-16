@@ -7,11 +7,10 @@ import javax.websocket.Session;
 
 import org.apache.log4j.Logger;
 
-
 public class WebSocketClient extends Endpoint {
-	
+
 	private static final Logger logger = Logger.getLogger(WebSocketClient.class);
-	
+
 	private WebSocketPeer webSocketPeer;
 
 	public WebSocketClient(WebSocketPeer webSocketPeer) {
@@ -26,8 +25,8 @@ public class WebSocketClient extends Endpoint {
 
 	@Override
 	public void onClose(Session session, CloseReason closeReason) {
-		logger.info("Connection to peer closed. Session id '" + session.getId()
-				+ "'. Reason code '"+ closeReason.getCloseCode() + "' reason phrase '" + closeReason.getReasonPhrase() + "'");
+		logger.info("Connection to peer closed. Session id '" + session.getId() + "'. Reason code '"
+				+ closeReason.getCloseCode() + "' reason phrase '" + closeReason.getReasonPhrase() + "'");
 		webSocketPeer.onClose(session, closeReason);
 	}
 }
