@@ -34,6 +34,23 @@ public class RouteNode implements Part<RouteNode>, Comparable<RouteNode>, Host<R
 	public String getNodeId() {
 		return nodeId;
 	}
+	
+	public String getFullNodeId() {
+		
+		String fullNodeId = getNodeId();
+		RouteNode node = getParent();
+		
+		while(node != null && !node.getNodeId().equals("Root")) {
+			fullNodeId = node.getNodeId() + "/" + fullNodeId;
+			node = node.getParent();
+		}
+		
+		return fullNodeId;
+	}
+	
+	public int subscriptionCount() {
+		return subscribers.size();
+	}
 
 	public boolean accept(Message message) {
 		logger.trace("Accepting message for destination: '" + message.getDestination() + "' at node '" + nodeId + "'.");

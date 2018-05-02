@@ -32,7 +32,7 @@ public class MessageDecoder implements Decoder.Text<Message> {
 	@Override
 	public Message decode(String jsonMessage) throws DecodeException {
 
-		logger.info("Decoding the message '" + jsonMessage + "'.");
+		logger.trace("Decoding the message '" + jsonMessage + "'.");
 
 		Message message = null;
 
@@ -48,7 +48,7 @@ public class MessageDecoder implements Decoder.Text<Message> {
 	@Override
 	public boolean willDecode(String jsonMessage) {
 
-		logger.info("Trying to assertain validity for the message '" + jsonMessage + "'.");
+		logger.trace("Trying to assertain validity for the message '" + jsonMessage + "'.");
 
 		boolean willDecode = true;
 

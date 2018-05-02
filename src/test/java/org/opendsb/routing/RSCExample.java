@@ -39,7 +39,7 @@ public class RSCExample {
 
 		logger.info("Calling service '" + serviceName + "'");
 
-		MessageFuture<ReplyMessage> reply = client.call(serviceName, parameters);
+		MessageFuture<ReplyMessage> reply = client.call(serviceName, parameters, () -> {});
 
 		logger.info("Waiting response from '" + serviceName + "'");
 
@@ -67,7 +67,7 @@ public class RSCExample {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("neighbourhood", "Onde Judas perdeu as botas");
 
-		MessageFuture<ReplyMessage> reply = client.call("Brasil/RJ/Clima/getTemperature", parameters);
+		MessageFuture<ReplyMessage> reply = client.call("Brasil/RJ/Clima/getTemperature", parameters, () -> {});
 
 		ReplyMessage m = reply.get();
 		StringBuilder builder = new StringBuilder();

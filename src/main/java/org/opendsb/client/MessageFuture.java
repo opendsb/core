@@ -10,8 +10,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
+import org.opendsb.messaging.ControlMessage;
 import org.opendsb.messaging.Message;
 import org.opendsb.messaging.Subscription;
+import org.opendsb.messaging.control.ControlMessageType;
+import org.opendsb.messaging.control.ControlTokens;
 
 @SuppressWarnings("unchecked")
 public class MessageFuture<T extends Message> implements Future<T>, Consumer<T> {
@@ -19,14 +22,19 @@ public class MessageFuture<T extends Message> implements Future<T>, Consumer<T> 
 	private BlockingQueue<T> waitingQueue = new ArrayBlockingQueue<>(1);
 
 	private Set<Thread> blockedThreads = new HashSet<>();
+	
+	private String transactionId;
 
 	private boolean done;
 
 	private boolean cancelled;
+	
+	private boolean acknowledged = false;
 
 	private Subscription replySubscription;
 
-	public MessageFuture(BusClient busClient, String replyTopic) {
+	public MessageFuture(BusClient busClient, String replyTopic, String transactionId) {
+		this.transactionId = transactionId;
 		this.replySubscription = busClient.subscribe(replyTopic, (Consumer<Message>) this);
 	}
 
@@ -48,6 +56,10 @@ public class MessageFuture<T extends Message> implements Future<T>, Consumer<T> 
 	@Override
 	public boolean isDone() {
 		return done;
+	}
+
+	public boolean isAcknowledged() {
+		return acknowledged;
 	}
 
 	@Override
@@ -81,6 +93,13 @@ public class MessageFuture<T extends Message> implements Future<T>, Consumer<T> 
 
 	@Override
 	public void accept(T msg) {
+		if (msg instanceof ControlMessage) {
+			ControlMessage cMsg = (ControlMessage)msg;
+			if(cMsg.getControlMessageType().equals(ControlMessageType.CALL_ACK) && cMsg.getControlInfo(ControlTokens.TRANSACTION_ID).equals(transactionId)) {
+				acknowledged = true;
+			}
+			return;
+		}
 		waitingQueue.add(msg);
 		done = true;
 	}

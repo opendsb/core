@@ -96,7 +96,7 @@ public class RemoteServiceCallTest {
 				parameters.put("correlation", "CORRELATION_123B83DC");
 
 				// Native Publish
-				Future<ReplyMessage> ans = client.call(topic, parameters);
+				Future<ReplyMessage> ans = client.call(topic, parameters, () -> {});
 
 				ReplyVO reply = (ReplyVO) ans.get().getData();
 

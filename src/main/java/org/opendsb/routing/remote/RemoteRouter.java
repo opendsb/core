@@ -36,7 +36,7 @@ public abstract class RemoteRouter {
 	}
 
 	public void process(String connectionId, ControlMessage message) {
-		logger.error("Control message of the type '" + message.getControlMessageType() + "' could not be processed.");
+		localRouter.routeMessage(message, false);
 	}
 
 	public void addPendingPeer(RemotePeer peer) throws IllegalArgumentException {

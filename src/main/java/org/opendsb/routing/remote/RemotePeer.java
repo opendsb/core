@@ -54,10 +54,10 @@ public abstract class RemotePeer {
 
 	public static class Builder {
 
-		public RemotePeer build(String remoteAddress, RemoteRouter router) throws IllegalArgumentException {
+		public RemotePeer build(String remoteAddress, RemoteRouter router, String sessionCookie) throws IllegalArgumentException {
 
 			if (remoteAddress.startsWith("ws://")) {
-				return new WebSocketPeer(remoteAddress, router);
+				return new WebSocketPeer(remoteAddress, sessionCookie, router);
 			}
 
 			throw new IllegalArgumentException("Address string '" + remoteAddress + "' not recognized");

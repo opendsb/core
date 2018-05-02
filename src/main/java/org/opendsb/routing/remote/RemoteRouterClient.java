@@ -15,10 +15,19 @@ public class RemoteRouterClient extends RemoteRouter {
 	private static final Logger logger = Logger.getLogger(RemoteRouterClient.class);
 
 	private Set<String> remoteServerPaths = new HashSet<>();
+	
+	private String sessionCookie = "";
 
 	public RemoteRouterClient(Router localRouter, Set<String> remoteServerPaths) {
 		super(localRouter);
 		this.remoteServerPaths = remoteServerPaths;
+	}
+
+	
+	public RemoteRouterClient(Router localRouter, Set<String> remoteServerPaths, String sessionCookie) {
+		super(localRouter);
+		this.remoteServerPaths = remoteServerPaths;
+		this.sessionCookie = sessionCookie;
 	}
 
 	@Override
@@ -28,7 +37,7 @@ public class RemoteRouterClient extends RemoteRouter {
 
 	private void connectToRemoteAddress(String address) {
 		try {
-			RemotePeer peer = new RemotePeer.Builder().build(address, this);
+			RemotePeer peer = new RemotePeer.Builder().build(address, this, sessionCookie);
 			peer.connect();
 			pendingPeers.put(peer.getConnectionId(), peer);
 			peer.sendMessage(new ControlMessage.Builder()

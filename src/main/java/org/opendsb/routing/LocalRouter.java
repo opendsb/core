@@ -26,6 +26,23 @@ public class LocalRouter implements Router {
 
 	public LocalRouter() {
 		super();
+		executorService = Executors.newFixedThreadPool(5, (r) -> {
+			Thread thread = Executors.defaultThreadFactory().newThread(r);
+			thread.setName("OpenDSB-" + routerID + "[" + thread.getName() + "]");
+			thread.setDaemon(true);
+			return thread;
+		});
+		routeTree = new CompositeRouteNode("Root");
+	}
+	
+	public LocalRouter(int numberOFThreads) {
+		super();
+		executorService = Executors.newFixedThreadPool(numberOFThreads, (r) -> {
+			Thread thread = Executors.defaultThreadFactory().newThread(r);
+			thread.setName("OpenDSB-" + routerID + "[" + thread.getName() + "]");
+			thread.setDaemon(true);
+			return thread;
+		});
 		routeTree = new CompositeRouteNode("Root");
 	}
 
@@ -45,8 +62,8 @@ public class LocalRouter implements Router {
 
 	@Override
 	public void routeMessage(Message message, boolean remoteBroadCast) {
-		logger.trace("Routing message '" + message.getType() + "' to topic '" + message.getDestination() + "'");
-		RoutingTask task = new RoutingTask(routeTree, message);
+		logger.info("Routing message '" + message.getType() + "' to topic '" + message.getDestination() + "'");
+		RoutingTask task = new RoutingTask(routeTree, this, message);
 		if (remoteBroadCast) {
 			task.setRemoteRouter(remoteRouter);
 		}

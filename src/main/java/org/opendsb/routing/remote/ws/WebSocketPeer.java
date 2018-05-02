@@ -1,7 +1,10 @@
 package org.opendsb.routing.remote.ws;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
@@ -22,9 +25,12 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<Me
 	private static final Logger logger = Logger.getLogger(WebSocketPeer.class);
 
 	private Session session = null;
+	
+	private String sessionCookie = "";
 
-	public WebSocketPeer(String address, RemoteRouter router) {
+	public WebSocketPeer(String address, String sessionCookie, RemoteRouter router) {
 		super(address, router);
+		this.sessionCookie = sessionCookie;
 	}
 
 	public WebSocketPeer(RemoteRouter router, Session session) {
@@ -32,6 +38,7 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<Me
 		this.session = session;
 		this.connectionId = session.getId();
 	}
+	
 
 	@Override
 	public void connect() throws IOException {
@@ -42,9 +49,25 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<Me
 
 		while (session == null) {
 			try {
-				ClientEndpointConfig cec = ClientEndpointConfig.Builder.create()
-						.decoders(Arrays.asList(MessageDecoder.class)).encoders(Arrays.asList(MessageEncoder.class))
-						.build();
+				ClientEndpointConfig cec;
+				if (sessionCookie == null || sessionCookie.isEmpty()) {
+					cec = ClientEndpointConfig.Builder.create()
+							.decoders(Arrays.asList(MessageDecoder.class)).encoders(Arrays.asList(MessageEncoder.class))
+							.build();
+				} else {
+					cec = ClientEndpointConfig.Builder.create().configurator(new ClientEndpointConfig.Configurator() {
+						@Override
+						public void beforeRequest(Map<String, List<String>> headers) {
+							super.beforeRequest(headers);
+							List<String> cookieList = headers.get("Cookie");
+							if (cookieList == null)
+								cookieList = new ArrayList<>();
+							cookieList.add(sessionCookie);
+							headers.put("Cookie", cookieList);
+						}
+					}).decoders(Arrays.asList(MessageDecoder.class)).encoders(Arrays.asList(MessageEncoder.class))
+							.build();
+				}
 				session = container.connectToServer(wsc, cec, address);
 				connectionId = session.getId();
 				router.addPendingPeer(this);

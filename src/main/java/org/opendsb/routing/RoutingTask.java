@@ -1,5 +1,6 @@
 package org.opendsb.routing;
 
+import org.opendsb.messaging.CallMessage;
 import org.opendsb.messaging.Message;
 import org.opendsb.pattern.navigator.ConditionalVisitor;
 import org.opendsb.pattern.navigator.Navigator;
@@ -12,13 +13,16 @@ public class RoutingTask implements Runnable {
 	private CompositeRouteNode routeTree;
 
 	private Message message;
+	
+	private Router localRouter;
 
 	private RemoteRouter remoteRouter = null;
 
-	public RoutingTask(CompositeRouteNode routeTree, Message message) {
+	public RoutingTask(CompositeRouteNode routeTree, Router localRouter, Message message) {
 		super();
 		this.message = message;
 		this.routeTree = routeTree;
+		this.localRouter = localRouter;
 	}
 
 	public void setRemoteRouter(RemoteRouter remoteRouter) {
@@ -43,7 +47,7 @@ public class RoutingTask implements Runnable {
 
 		switch (message.getType()) {
 		case CALL: {
-			dispatcher = new RequestDispatcher(message);
+			dispatcher = new RequestDispatcher(localRouter, (CallMessage)message);
 			predicate = new RoutingPredicate(dispatcher);
 			vis = new ConditionalVisitor<>(predicate, (TreeVisitor<RouteNode>) dispatcher);
 			break;

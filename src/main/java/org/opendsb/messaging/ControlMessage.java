@@ -18,6 +18,13 @@ public class ControlMessage extends BaseMessage {
 		this.controlMessageType = controlMessageType;
 		this.controlInfo = controlInfo;
 	}
+	
+	private ControlMessage(String origin, String destination, ControlMessageType controlMessageType, Map<String, String> controlInfo) {
+		super(destination, origin);
+		this.type = MessageType.CONTROL;
+		this.controlMessageType = controlMessageType;
+		this.controlInfo = controlInfo;
+	}
 
 	public ControlMessageType getControlMessageType() {
 		return controlMessageType;
@@ -44,20 +51,42 @@ public class ControlMessage extends BaseMessage {
 		public ConnectionReplyMessageBuilder createConnectionReplyMessage(String transactionId, String origin) {
 			return new ConnectionReplyMessageBuilder(transactionId, origin);
 		}
+		
+		public CallAckMessageBuilder createCallAckMessage(String transactionId, String origin, String destination) {
+			return new CallAckMessageBuilder(transactionId, origin, destination);
+		}
 
 		public abstract class ControlBuilder {
 
 			protected ControlMessageType controlMessageType = ControlMessageType.CONNECTION_REQUEST;
 			protected Map<String, String> controlInfo = new HashMap<>();
 			private String origin;
+			private String destination = null;
 
 			private ControlBuilder(String transactionId, String origin) {
 				this.origin = origin;
 				controlInfo.put(ControlTokens.TRANSACTION_ID, transactionId);
 			}
+			
+			private ControlBuilder(String transactionId, String origin, String destination) {
+				this.origin = origin;
+				this.destination = destination;
+				controlInfo.put(ControlTokens.TRANSACTION_ID, transactionId);
+			}
 
 			public ControlMessage build() {
-				return new ControlMessage(origin, controlMessageType, controlInfo);
+				if (destination != null) {
+					return new ControlMessage(origin, destination, controlMessageType, controlInfo);
+				} else {
+					return new ControlMessage(origin, controlMessageType, controlInfo);
+				}
+			}
+		}
+		
+		public class CallAckMessageBuilder extends ControlBuilder {
+			public CallAckMessageBuilder(String transactionId, String origin, String destination) {
+				super(transactionId, origin, destination);
+				controlMessageType = ControlMessageType.CALL_ACK;
 			}
 		}
 
