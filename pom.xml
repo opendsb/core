@@ -22,11 +22,11 @@
 		<url>https://opendsb.ci.cloudbees.com/job/core/</url>
 	</ciManagement>
 	<description>https://github.com/opendsb/core</description>
-	<parent>
+	<!-- parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
-		<version>9</version>
-	</parent>
+		<version>1.8</version>
+	</parent -->
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -116,28 +116,28 @@
 			<version>1.12</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
+		<!-- dependency>
 			<groupId>org.jsweet.candies</groupId>
 			<artifactId>jsweet-core</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
+		</dependency -->
+		<!-- dependency>
 			<groupId>org.jsweet</groupId>
 			<artifactId>jsweet-transpiler</artifactId>
 			<version>1.0.0</version>
 			<scope>provided</scope>
-		</dependency>
-		<!-- dependency> <groupId>org.jsweet.candies</groupId> <artifactId>polymer</artifactId> 
+		</dependency -->
+		<!-- dependency> <groupId>org.jsweet.candies</groupId> <artifactId>polymer</artifactId>
 			<version>1.1.2-1.0.0-20160202</version> </dependency -->
-		<dependency>
+		<!-- dependency>
 			<groupId>org.jsweet.candies</groupId>
 			<artifactId>polymer</artifactId>
 			<version>1.1.2-1.0.0-20160202</version>
 			<scope>provided</scope>
-		</dependency>
+		</dependency -->
 	</dependencies>
-	<repositories>
+	<!-- repositories>
 		<repository>
 			<id>jsweet-central</id>
 			<name>libs-release</name>
@@ -149,7 +149,7 @@
 			<name>libs-snapshot</name>
 			<url>http://repository.jsweet.org/artifactory/libs-snapshot-local</url>
 		</repository>
-	</repositories>
+	</repositories  -->
 	<build>
 		<!-- sourceDirectory>src</sourceDirectory -->
 		<finalName>opendsb</finalName>
@@ -213,28 +213,28 @@
 					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.jsweet</groupId>
-				<artifactId>jsweet-maven-plugin</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
-				<configuration>
-					<outDir>src/js</outDir>
-					<dtsOut>src/js</dtsOut>
-					<targetVersion>ES5</targetVersion>
-					<includes>
-						<include>**/*.java</include>
-					</includes>
-					<bundle>true</bundle>
-					<sourceMap>true</sourceMap>
-					<encoding>UTF-8</encoding>
-					<enableAssertions>true</enableAssertions>
-					<verbose>true</verbose>
-					<!-- jdkHome>/opt/jdk8</jdkHome -->
-					<declaration>true</declaration>
-				</configuration>
-				<!-- executions> <execution> <id>generate-js</id> <phase>generate-sources</phase> 
-					<goals> <goal>jsweet</goal> </goals> </execution> </executions -->
-			</plugin>
 		</plugins>
 	</build>
 </project>
+
+<!-- plugin>
+  <groupId>org.jsweet</groupId>
+  <artifactId>jsweet-maven-plugin</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <configuration>
+    <outDir>src/js</outDir>
+    <dtsOut>src/js</dtsOut>
+    <targetVersion>ES5</targetVersion>
+    <includes>
+      <include>**/*.java</include>
+    </includes>
+    <bundle>true</bundle>
+    <sourceMap>true</sourceMap>
+    <encoding>UTF-8</encoding>
+    <enableAssertions>true</enableAssertions>
+    <verbose>true</verbose>
+    <declaration>true</declaration>
+  </configuration -->
+  <!-- executions> <execution> <id>generate-js</id> <phase>generate-sources</phase>
+    <goals> <goal>jsweet</goal> </goals> </execution> </executions -->
+<!--/plugin -->
