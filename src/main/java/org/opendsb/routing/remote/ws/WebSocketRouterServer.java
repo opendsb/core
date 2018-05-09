@@ -20,7 +20,7 @@ public class WebSocketRouterServer extends RemoteRouterServer {
 		this.path = path;
 		this.container = container;
 		this.config = ServerEndpointConfig.Builder.create(WebSocketServer.class, path)
-				.decoders(Arrays.asList(MessageDecoder.class)).encoders(Arrays.asList(MessageEncoder.class))
+//				.decoders(Arrays.asList(MessageDecoder.class)).encoders(Arrays.asList(MessageEncoder.class))
 				.configurator(new ServerConfigurator(this)).build();
 	}
 

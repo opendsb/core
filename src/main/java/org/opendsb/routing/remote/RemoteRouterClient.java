@@ -39,7 +39,7 @@ public class RemoteRouterClient extends RemoteRouter {
 		try {
 			RemotePeer peer = new RemotePeer.Builder().build(address, this, sessionCookie);
 			peer.connect();
-			pendingPeers.put(peer.getConnectionId(), peer);
+			addPendingPeer(peer);
 			peer.sendMessage(new ControlMessage.Builder()
 					.createConnectionRequestMessage("ConnectionRequest_" + UUID.randomUUID(), id).addClientId(id)
 					.build());

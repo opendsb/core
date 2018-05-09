@@ -96,6 +96,7 @@ public abstract class RemoteRouter {
 	}
 
 	public void receiveMessage(String connectionId, Message message) {
+		logger.info("Receiveing message from peer '" + connectionId + "' -> type '" + message.getType() + "'");
 		if (message.getType() == MessageType.CONTROL && message instanceof ControlMessage) {
 			process(connectionId, (ControlMessage) message);
 			return;

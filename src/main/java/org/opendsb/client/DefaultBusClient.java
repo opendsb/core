@@ -18,13 +18,19 @@ import org.opendsb.routing.Router;
 
 public class DefaultBusClient implements BusClient {
 	
+	private static ScheduledExecutorService executor = Executors.newScheduledThreadPool(2, (r) -> {
+		Thread thread = Executors.defaultThreadFactory().newThread(r);
+		thread.setName("OpenDSB-Client [" + thread.getName() + "]");
+		thread.setDaemon(true);
+		return thread;
+	});
+	
+	@SuppressWarnings("unused")
 	private final String clientId = "Client_" + UUID.randomUUID().toString();
 
 	private Router router;
 	
 	private long timeoutMills = 1000L;
-	
-	private ScheduledExecutorService executor;
 
 	public static BusClient of(Router router) {
 		return new DefaultBusClient(router);
@@ -32,12 +38,6 @@ public class DefaultBusClient implements BusClient {
 
 	private DefaultBusClient(Router router) {
 		this.router = router;
-		this.executor = Executors.newScheduledThreadPool(2, (r) -> {
-			Thread thread = Executors.defaultThreadFactory().newThread(r);
-			thread.setName("OpenDSB-" + clientId + "[" + thread.getName() + "]");
-			thread.setDaemon(true);
-			return thread;
-		});
 	}
 	
 	public long getTimeoutMills() {
