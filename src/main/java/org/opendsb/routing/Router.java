@@ -1,5 +1,6 @@
 package org.opendsb.routing;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.opendsb.messaging.Message;
@@ -8,6 +9,8 @@ import org.opendsb.routing.remote.RemoteRouter;
 
 public interface Router {
 	public String getId();
+	
+	public Map<String, Integer> getFullSubscriptionCount();
 
 	public void setRemoteRouter(RemoteRouter remoteRouter);
 

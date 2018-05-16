@@ -37,7 +37,7 @@ public class BasicRoutingTest {
 		id = "Argentina";
 		Subscription sub3 = client.subscribe(id, m -> System.out
 				.println("Message received\n  Receptor 'Argentina'\n  messageId'" + m.getMessageId() + "'"));
-		id = "RJ";
+		id = "Brasil/RJ";
 		Subscription sub4 = client.subscribe(id,
 				m -> System.out.println("Message received\n  Receptor 'RJ'\n  messageId'" + m.getMessageId() + "'"));
 		id = "SP";

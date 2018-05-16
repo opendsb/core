@@ -1,11 +1,12 @@
 package org.opendsb.routing;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.opendsb.messaging.Message;
@@ -20,7 +21,7 @@ public class LocalRouter implements Router {
 
 	private RemoteRouter remoteRouter;
 
-	private CompositeRouteNode routeTree;
+	protected Map<String, RouteNode> routingTable = new ConcurrentHashMap<>();
 
 	private String routerID = "Router_" + UUID.randomUUID();
 
@@ -32,7 +33,6 @@ public class LocalRouter implements Router {
 			thread.setDaemon(true);
 			return thread;
 		});
-		routeTree = new CompositeRouteNode("Root");
 	}
 	
 	public LocalRouter(int numberOFThreads) {
@@ -43,11 +43,14 @@ public class LocalRouter implements Router {
 			thread.setDaemon(true);
 			return thread;
 		});
-		routeTree = new CompositeRouteNode("Root");
 	}
-
-	protected CompositeRouteNode getRouteTree() {
-		return routeTree;
+	
+	public Map<String, Integer> getFullSubscriptionCount() {
+		Map<String, Integer> fullCount = new HashMap<>();
+		for (String topic : routingTable.keySet()) {
+			fullCount.put(topic, routingTable.get(topic).subscriptionCount());
+		}
+		return fullCount;
 	}
 
 	@Override
@@ -63,7 +66,7 @@ public class LocalRouter implements Router {
 	@Override
 	public void routeMessage(Message message, boolean remoteBroadCast) {
 		logger.info("Routing message '" + message.getType() + "' to topic '" + message.getDestination() + "'");
-		RoutingTask task = new RoutingTask(routeTree, this, message);
+		RoutingTask task = new RoutingTask(routingTable, message);
 		if (remoteBroadCast) {
 			task.setRemoteRouter(remoteRouter);
 		}
@@ -75,37 +78,18 @@ public class LocalRouter implements Router {
 
 		logger.debug("subscribing to topic '" + topic + "'");
 
-		String[] nodes = topic.split("/");
-
-		CompositeRouteNode node = routeTree;
-		RouteNode ref;
-
 		Subscription subscription = null;
-
-		for (int i = 0; i < nodes.length; i++) {
-			String targetId = nodes[i];
-			List<RouteNode> list = node.getChildren().filter(n -> n.getNodeId().equals(targetId))
-					.collect(Collectors.toList());
-
-			if (list.size() > 1) {
-				logger.warn("More than one node with an ID of '" + targetId + "'.");
-			}
-
-			if (list.size() <= 0) {
-				ref = new CompositeRouteNode(targetId);
-				node.addChild(ref);
-			} else {
-				ref = list.get(0);
-			}
-
-			// Only the last element in the chain gets the handler
-			if (i == nodes.length - 1) {
-				subscription = ref.subscribe(topic, handler, priority);
-			} else {
-				node = (CompositeRouteNode) ref;
-			}
+		RouteNode subNode = null;
+		
+		if (routingTable.containsKey(topic)) {
+			subNode = routingTable.get(topic);
+		} else {
+			subNode = new RouteNode(topic, this);
+			routingTable.put(topic, subNode);
 		}
-
+		
+		subscription = subNode.subscribe(handler, priority);
+		
 		return subscription;
 	}
 

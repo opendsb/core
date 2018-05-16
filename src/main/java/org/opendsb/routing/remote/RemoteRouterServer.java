@@ -1,5 +1,8 @@
 package org.opendsb.routing.remote;
 
+import java.lang.reflect.Type;
+import java.util.Map;
+
 import javax.websocket.CloseReason.CloseCodes;
 
 import org.apache.log4j.Logger;
@@ -7,6 +10,9 @@ import org.opendsb.messaging.ControlMessage;
 import org.opendsb.messaging.control.ControlMessageType;
 import org.opendsb.messaging.control.ControlTokens;
 import org.opendsb.routing.Router;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public abstract class RemoteRouterServer extends RemoteRouter {
 
@@ -19,12 +25,11 @@ public abstract class RemoteRouterServer extends RemoteRouter {
 	protected abstract void createServer() throws Exception;
 
 	@Override
-	public void process(String connectionId, ControlMessage message) {
+	public void doProcess(String connectionId, ControlMessage message) {
 		if (message.getControlMessageType() == ControlMessageType.CONNECTION_REQUEST) {
 			doConnectionRequest(connectionId, message);
 			return;
 		}
-		super.process(connectionId, message);
 	}
 
 	protected void doConnectionRequest(String connectionId, ControlMessage message) {
@@ -38,13 +43,19 @@ public abstract class RemoteRouterServer extends RemoteRouter {
 
 				String clientId = message.getControlInfo(ControlTokens.CLIENT_ID);
 				String transactionId = message.getControlInfo(ControlTokens.TRANSACTION_ID);
-				peer = pendingPeers.get(connectionId);
+				Type routeTableCount = new TypeToken<Map<String, Integer>>() {}.getType();
+				Gson gson = new Gson();
+				Map<String, Integer> remoteRoutingTable = gson.fromJson(message.getControlInfo(ControlTokens.ROUTING_TABLE_COUNT), routeTableCount);
+				peer = pendingPeers.remove(connectionId);
 				peer.setPeerId(clientId);
-				pendingPeers.remove(connectionId);
+				peer.setRemoteRoutingTableCounter(remoteRoutingTable);
 				if (!remotePeers.containsKey(clientId)) {
 					remotePeers.put(clientId, peer);
-					peer.sendMessage(new ControlMessage.Builder().createConnectionReplyMessage(transactionId, id)
-							.addServerId(id).build());
+					peer.sendMessage(new ControlMessage.Builder()
+							.createConnectionReplyMessage(transactionId, id)
+							.addRoutingTableCount(localRouter.getFullSubscriptionCount())
+							.addServerId(id)
+							.build());
 				} else {
 					peer.closeConnection(CloseCodes.CANNOT_ACCEPT.getCode(),
 							"There is already a peer connected to this server with an id '" + clientId + "'");

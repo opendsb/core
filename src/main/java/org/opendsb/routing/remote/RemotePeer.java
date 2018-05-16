@@ -2,17 +2,24 @@ package org.opendsb.routing.remote;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Logger;
 import org.opendsb.messaging.Message;
 import org.opendsb.routing.remote.ws.WebSocketPeer;
 
 public abstract class RemotePeer {
+	
+	private static final Logger logger = Logger.getLogger(RemotePeer.class);
 
 	protected boolean shutdown = false;
 
 	protected URI address;
 	protected String peerId;
 
+	protected Map<String, Integer> remoteRoutingTableCounter = new ConcurrentHashMap<>();
+	
 	protected String connectionId;
 
 	protected RemoteRouter router;
@@ -21,6 +28,7 @@ public abstract class RemotePeer {
 		super();
 		this.address = URI.create(address);
 		this.router = router;
+		remoteRoutingTableCounter.put("control", 1);
 	}
 
 	public String getPeerId() {
@@ -34,10 +42,47 @@ public abstract class RemotePeer {
 	public void setPeerId(String peerId) {
 		this.peerId = peerId;
 	}
+	
+	public Map<String, Integer> getRemoteRoutingTableCounter() {
+		return remoteRoutingTableCounter;
+	}
+
+	public void setRemoteRoutingTableCounter(Map<String, Integer> remoteRoutingTableCounter) {
+		this.remoteRoutingTableCounter.clear();
+		this.remoteRoutingTableCounter.putAll(remoteRoutingTableCounter);
+		this.remoteRoutingTableCounter.put("control", 1);
+		logger.info("refreshing remote peer table count");
+		for (String topic : this.remoteRoutingTableCounter.keySet()) {
+			logger.info("Topic: '" + topic + "': " + this.remoteRoutingTableCounter.get(topic));
+		}
+	}
 
 	public abstract void connect() throws IOException;
 
-	public abstract void sendMessage(Message message);
+	public void sendMessage(Message message) {
+		// Lookup indexes instead
+		String[] pieces = message.getDestination().split("/");
+		String destination = null;
+		
+		String concat = "";
+		
+		boolean send = false;
+		
+		// Generate the path like a/b/c in a, a/b, a/b/c
+		for (int i = 0; i < pieces.length; i++) {
+			destination = concat + pieces[i];
+			if (remoteRoutingTableCounter.containsKey(destination) && remoteRoutingTableCounter.get(destination) > 0) {
+				send = true;
+				break;
+			}
+			concat = destination + "/";
+		}
+		if (send) {
+			doSendMessage(message);
+		}
+	}
+	
+	public abstract void doSendMessage(Message message);
 
 	public abstract void closeConnection();
 

@@ -1,28 +1,22 @@
 package org.opendsb.routing;
 
-import org.opendsb.messaging.CallMessage;
+import java.util.Map;
+
 import org.opendsb.messaging.Message;
-import org.opendsb.pattern.navigator.ConditionalVisitor;
-import org.opendsb.pattern.navigator.Navigator;
-import org.opendsb.pattern.navigator.TreeTopDownNavigator;
-import org.opendsb.pattern.visitor.TreeVisitor;
 import org.opendsb.routing.remote.RemoteRouter;
 
 public class RoutingTask implements Runnable {
 
-	private CompositeRouteNode routeTree;
+	private Map<String, RouteNode> routingTable;
 
 	private Message message;
 	
-	private Router localRouter;
-
 	private RemoteRouter remoteRouter = null;
 
-	public RoutingTask(CompositeRouteNode routeTree, Router localRouter, Message message) {
+	public RoutingTask(Map<String, RouteNode> routingTable, Message message) {
 		super();
 		this.message = message;
-		this.routeTree = routeTree;
-		this.localRouter = localRouter;
+		this.routingTable = routingTable;
 	}
 
 	public void setRemoteRouter(RemoteRouter remoteRouter) {
@@ -30,37 +24,35 @@ public class RoutingTask implements Runnable {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public void run() {
 
+		// Lookup indexes instead
+		
+		String[] pieces = message.getDestination().split("/");
+		
+		String concat = "";
+		String destination = null;
+		// Generate the path like a/b/c in a, a/b, a/b/c
+		for (int i = 0; i < pieces.length; i++) {
+			destination = concat + pieces[i];
+			
+			// Do Stuff
+			routeMessage(destination);
+			
+			concat = destination + "/";
+		}
+		
+		// Sends message to remote peers as well.
 		if (remoteRouter != null) {
 			remoteRouter.sendMessage(message);
 		}
-
-		Navigator<RouteNode> nav = new TreeTopDownNavigator<>();
-
-		Dispatcher dispatcher = null;
-
-		RoutingPredicate predicate = null;
-
-		ConditionalVisitor<RouteNode> vis = null;
-
-		switch (message.getType()) {
-		case CALL: {
-			dispatcher = new RequestDispatcher(localRouter, (CallMessage)message);
-			predicate = new RoutingPredicate(dispatcher);
-			vis = new ConditionalVisitor<>(predicate, (TreeVisitor<RouteNode>) dispatcher);
-			break;
+	}
+	
+	private void routeMessage(String destination) {
+		if (routingTable.containsKey(destination) && routingTable.get(destination).subscriptionCount() > 0) {
+			RouteNode node = routingTable.get(destination);
+			node.accept(message);
 		}
-
-		default: {
-			dispatcher = new RouteNodeDispatcher(message);
-			predicate = new RoutingPredicate(dispatcher);
-			vis = new ConditionalVisitor<>(predicate, (TreeVisitor<RouteNode>) dispatcher);
-		}
-		}
-
-		nav.navigateAndApplyVisitor(routeTree, vis);
 	}
 
 }

@@ -1,5 +1,6 @@
 package org.opendsb.routing.remote;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -10,7 +11,12 @@ import org.apache.log4j.Logger;
 import org.opendsb.messaging.ControlMessage;
 import org.opendsb.messaging.Message;
 import org.opendsb.messaging.MessageType;
+import org.opendsb.messaging.control.ControlMessageType;
+import org.opendsb.messaging.control.ControlTokens;
 import org.opendsb.routing.Router;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public abstract class RemoteRouter {
 
@@ -36,8 +42,21 @@ public abstract class RemoteRouter {
 	}
 
 	public void process(String connectionId, ControlMessage message) {
+		logger.info("Processing control message of type '" + message.getControlMessageType() + "'");
+		if ("control".equals(message.getDestination())) {
+			if (message.getControlMessageType() == ControlMessageType.UPDATE_ROUTE_COUNT) {
+				RemotePeer peer = remotePeers.get(message.getLatestHop());
+				Type routeTableCount = new TypeToken<Map<String, Integer>>() {}.getType();
+				Gson gson = new Gson();
+				Map<String, Integer> remoteRoutingTable = gson.fromJson(message.getControlInfo(ControlTokens.ROUTING_TABLE_COUNT), routeTableCount);
+				peer.setRemoteRoutingTableCounter(remoteRoutingTable);
+			}
+			doProcess(connectionId, message);
+		}
 		localRouter.routeMessage(message, false);
 	}
+	
+	protected abstract void doProcess(String connectionId, ControlMessage message);
 
 	public void addPendingPeer(RemotePeer peer) throws IllegalArgumentException {
 		if (pendingPeers.containsKey(peer.getConnectionId())) {
@@ -92,12 +111,16 @@ public abstract class RemoteRouter {
 		message.setLatestHop(id);
 		// Send the message to all peers except the one that send the message.
 		remotePeers.entrySet().stream().filter(e -> !e.getKey().equals(previousHop))
-				.forEach(e -> e.getValue().sendMessage(message));
+				.forEach(e -> {
+					// SendMesage -> Already checks if the topic is being listened in the peer else does not propagate.
+					e.getValue().sendMessage(message);
+				});
 	}
 
 	public void receiveMessage(String connectionId, Message message) {
 		logger.info("Receiveing message from peer '" + connectionId + "' -> type '" + message.getType() + "'");
-		if (message.getType() == MessageType.CONTROL && message instanceof ControlMessage) {
+		if (message.getType() == MessageType.CONTROL 
+				&& message instanceof ControlMessage) {
 			process(connectionId, (ControlMessage) message);
 			return;
 		}

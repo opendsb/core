@@ -37,7 +37,7 @@ public class RemoteServiceCallTest {
 	private static Subscription subscription;
 	private static RemoteService handler = new RemoteService();
 
-	private static String topic = "/org/openDSB/remote/testService/getInfo";
+	private static String topic = "org/openDSB/remote/testService/getInfo";
 
 	private static String host = "localhost";
 	private static int port = 8025;

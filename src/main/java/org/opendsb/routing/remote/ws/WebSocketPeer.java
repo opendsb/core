@@ -58,7 +58,6 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 				ClientEndpointConfig cec;
 				if (sessionCookie == null || sessionCookie.isEmpty()) {
 					cec = ClientEndpointConfig.Builder.create()
-//							.decoders(Arrays.asList(MessageDecoder.class)).encoders(Arrays.asList(MessageEncoder.class))
 							.build();
 				} else {
 					cec = ClientEndpointConfig.Builder.create().configurator(new ClientEndpointConfig.Configurator() {
@@ -71,9 +70,7 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 							cookieList.add(sessionCookie);
 							headers.put("Cookie", cookieList);
 						}
-					})
-//							.decoders(Arrays.asList(MessageDecoder.class)).encoders(Arrays.asList(MessageEncoder.class))
-							.build();
+					}).build();
 				}
 				session = container.connectToServer(wsc, cec, address);
 				connectionId = session.getId();
@@ -120,7 +117,7 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 	}
 	
 	@Override
-	public void sendMessage(Message message) {
+	public void doSendMessage(Message message) {
 		try {
 			synchronized(session) {
 				session.getBasicRemote().sendText(encoder.encode(message));

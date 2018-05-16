@@ -7,6 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import org.apache.log4j.Logger;
 import org.opendsb.messaging.CallMessage;
 import org.opendsb.messaging.DataMessage;
 import org.opendsb.messaging.Message;
@@ -17,6 +18,8 @@ import org.opendsb.routing.HandlerPriority;
 import org.opendsb.routing.Router;
 
 public class DefaultBusClient implements BusClient {
+	
+	private static final Logger logger = Logger.getLogger(DefaultBusClient.class);
 	
 	private static ScheduledExecutorService executor = Executors.newScheduledThreadPool(2, (r) -> {
 		Thread thread = Executors.defaultThreadFactory().newThread(r);
@@ -31,7 +34,7 @@ public class DefaultBusClient implements BusClient {
 	private Router router;
 	
 	private long timeoutMills = 1000L;
-
+ 
 	public static BusClient of(Router router) {
 		return new DefaultBusClient(router);
 	}
@@ -59,6 +62,7 @@ public class DefaultBusClient implements BusClient {
 		
 		executor.schedule(() -> {
 			if (!response.isAcknowledged()) {
+				logger.info("Request for '" + methodTopic + "' timed out");
 				response.cancel(true);
 				noServiceFoundCallback.execute();
 			}

@@ -35,7 +35,7 @@ public class RemoteDataPublishingTest {
 	private static Subscription subscription;
 	private static DataHandler handler = new DataHandler();
 
-	private static String topic = "/org/openDSB/remote/JSONTest";
+	private static String topic = "org/openDSB/remote/JSONTest";
 
 	private static String host = "localhost";
 	private static int port = 8025;

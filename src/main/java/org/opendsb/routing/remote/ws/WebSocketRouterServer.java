@@ -1,7 +1,5 @@
 package org.opendsb.routing.remote.ws;
 
-import java.util.Arrays;
-
 import javax.websocket.server.ServerContainer;
 import javax.websocket.server.ServerEndpointConfig;
 
@@ -20,7 +18,6 @@ public class WebSocketRouterServer extends RemoteRouterServer {
 		this.path = path;
 		this.container = container;
 		this.config = ServerEndpointConfig.Builder.create(WebSocketServer.class, path)
-//				.decoders(Arrays.asList(MessageDecoder.class)).encoders(Arrays.asList(MessageEncoder.class))
 				.configurator(new ServerConfigurator(this)).build();
 	}
 

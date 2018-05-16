@@ -1,51 +1,39 @@
 package org.opendsb.routing;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import org.apache.log4j.Logger;
+import org.opendsb.messaging.CallMessage;
+import org.opendsb.messaging.ControlMessage;
 import org.opendsb.messaging.Message;
 import org.opendsb.messaging.Subscription;
-import org.opendsb.pattern.composite.Part;
-import org.opendsb.pattern.visitor.Host;
-import org.opendsb.pattern.visitor.TreeVisitor;
 
-public class RouteNode implements Part<RouteNode>, Comparable<RouteNode>, Host<RouteNode> {
+public class RouteNode implements Comparable<RouteNode> {
 
 	private static final Logger logger = Logger.getLogger(RouteNode.class);
 
-	private String nodeId;
+	private String topic;
 
-	private Map<Subscription, Object> subscribers = new WeakHashMap<>();
+	private Map<String, Subscription> subscribers = new HashMap<>();
+	
+	private Router localRouter;
 
-	private RouteNode parent;
-
-	public RouteNode(String nodeId) {
+	public RouteNode(String topic, Router localRouter) {
 		super();
-		this.nodeId = nodeId;
+		this.topic = topic;
+		this.localRouter = localRouter;
 	}
 
 	@Override
 	public int compareTo(RouteNode o) {
-		return this.nodeId.compareTo(o.getNodeId());
+		return this.topic.compareTo(o.getTopic());
 	}
 
-	public String getNodeId() {
-		return nodeId;
-	}
-	
-	public String getFullNodeId() {
-		
-		String fullNodeId = getNodeId();
-		RouteNode node = getParent();
-		
-		while(node != null && !node.getNodeId().equals("Root")) {
-			fullNodeId = node.getNodeId() + "/" + fullNodeId;
-			node = node.getParent();
-		}
-		
-		return fullNodeId;
+	public String getTopic() {
+		return topic;
 	}
 	
 	public int subscriptionCount() {
@@ -53,44 +41,51 @@ public class RouteNode implements Part<RouteNode>, Comparable<RouteNode>, Host<R
 	}
 
 	public boolean accept(Message message) {
-		logger.trace("Accepting message for destination: '" + message.getDestination() + "' at node '" + nodeId + "'.");
-		if (subscribers.size() == 0) {
-			return false;
+		logger.trace("Accepting message for destination: '" + message.getDestination() + "' at node '" + topic + "'.");
+		
+		switch (message.getType()) {
+		case CALL: {
+			CallMessage msg = (CallMessage)message;
+			ControlMessage ack = new ControlMessage.Builder().createCallAckMessage(msg.getMessageId(), localRouter.getId() + "/" + topic, msg.getReplyTo()).build();
+			localRouter.routeMessage(ack, true);
+			break;
 		}
-		logger.trace("Iterating through node '" + nodeId + "'");
+
+		default: {
+			
+		}
+		}
+		
 		// Parallel processing hook point
-		subscribers.keySet().stream().sorted().forEach(h -> h.getConsumer().accept(message));
+		subscribers.values().stream().sorted().forEach(h -> h.getConsumer().accept(message));
 		return true;
 	}
 
-	public Subscription subscribe(String topic, Consumer<Message> consumer, HandlerPriority priority) {
+	public Subscription subscribe(Consumer<Message> consumer, HandlerPriority priority) {
 		Subscription subscription = new Subscription(topic, this, consumer, priority);
-		subscribers.put(subscription, null);
+		subscribers.put(subscription.getId(), subscription);
+		notifySubCountChange();
 		return subscription;
 	}
 
 	public void cancelSubscription(Subscription subscription) {
-		subscribers.remove(subscription);
+		subscribers.remove(subscription.getId());
+		notifySubCountChange();
 	}
-
-	public RouteNode getParent() {
-		return parent;
-	}
-
-	public void setParent(RouteNode parent) {
-		this.parent = parent;
-	}
-
-	@Override
-	public void accept(TreeVisitor<RouteNode> visitor) {
-		visitor.visit(this);
+	
+	private void notifySubCountChange() {
+		logger.warn("Notifying subscription status change to topic '" + topic  + "'");
+		localRouter.routeMessage(new ControlMessage.Builder()
+				.createUpdateRouteCountMessage(UUID.randomUUID().toString(), topic + "@" + localRouter.getId())
+				.addRoutingTableCount(localRouter.getFullSubscriptionCount())
+				.build(), true);
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((nodeId == null) ? 0 : nodeId.hashCode());
+		result = prime * result + ((topic == null) ? 0 : topic.hashCode());
 		return result;
 	}
 
@@ -106,11 +101,11 @@ public class RouteNode implements Part<RouteNode>, Comparable<RouteNode>, Host<R
 			return false;
 		}
 		RouteNode other = (RouteNode) obj;
-		if (nodeId == null) {
-			if (other.nodeId != null) {
+		if (topic == null) {
+			if (other.topic != null) {
 				return false;
 			}
-		} else if (!nodeId.equals(other.nodeId)) {
+		} else if (!topic.equals(other.topic)) {
 			return false;
 		}
 		return true;
@@ -118,6 +113,6 @@ public class RouteNode implements Part<RouteNode>, Comparable<RouteNode>, Host<R
 
 	@Override
 	public String toString() {
-		return "RouteNode [nodeId=" + nodeId + "]";
+		return "RouteNode [nodeId=" + topic + "]";
 	}
 }

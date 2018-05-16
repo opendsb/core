@@ -1,5 +1,6 @@
 package org.opendsb.messaging;
 
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import org.opendsb.routing.HandlerPriority;
@@ -7,6 +8,8 @@ import org.opendsb.routing.RouteNode;
 
 public class Subscription implements Comparable<Subscription> {
 
+	private final String id = "Subscription-" + UUID.randomUUID().toString();
+	
 	private String topic;
 
 	private RouteNode node;
@@ -49,6 +52,10 @@ public class Subscription implements Comparable<Subscription> {
 
 	public void setPriority(HandlerPriority priority) {
 		this.priority = priority;
+	}
+	
+	public String getId() {
+		return id;
 	}
 
 	public void cancel() {

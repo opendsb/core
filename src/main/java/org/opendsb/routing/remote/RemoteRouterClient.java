@@ -1,6 +1,8 @@
 package org.opendsb.routing.remote;
 
+import java.lang.reflect.Type;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -9,6 +11,9 @@ import org.opendsb.messaging.ControlMessage;
 import org.opendsb.messaging.control.ControlMessageType;
 import org.opendsb.messaging.control.ControlTokens;
 import org.opendsb.routing.Router;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class RemoteRouterClient extends RemoteRouter {
 
@@ -41,7 +46,9 @@ public class RemoteRouterClient extends RemoteRouter {
 			peer.connect();
 			addPendingPeer(peer);
 			peer.sendMessage(new ControlMessage.Builder()
-					.createConnectionRequestMessage("ConnectionRequest_" + UUID.randomUUID(), id).addClientId(id)
+					.createConnectionRequestMessage("ConnectionRequest_" + UUID.randomUUID(), id)
+					.addClientId(id)
+					.addRoutingTableCount(localRouter.getFullSubscriptionCount())
 					.build());
 		} catch (Exception e) {
 			logger.error("Failure establishing connection to address '" + address + "'", e);
@@ -49,12 +56,11 @@ public class RemoteRouterClient extends RemoteRouter {
 	}
 
 	@Override
-	public void process(String connectionId, ControlMessage message) {
+	public void doProcess(String connectionId, ControlMessage message) {
 		if (message.getControlMessageType() == ControlMessageType.CONNECTION_REPLY) {
 			doConnectionReply(connectionId, message);
 			return;
 		}
-		super.process(connectionId, message);
 	}
 
 	// FIXME: 1003 code connected to WebSocket. Make an enum that encapsulates
@@ -66,10 +72,13 @@ public class RemoteRouterClient extends RemoteRouter {
 		try {
 
 			if (pendingPeers.containsKey(connectionId)) {
-				RemotePeer peer = pendingPeers.get(connectionId);
+				RemotePeer peer = pendingPeers.remove(connectionId);
 				String serverId = message.getControlInfo(ControlTokens.SERVER_ID);
+				Type routeTableCount = new TypeToken<Map<String, Integer>>() {}.getType();
+				Gson gson = new Gson();
+				Map<String, Integer> remoteRoutingTable = gson.fromJson(message.getControlInfo(ControlTokens.ROUTING_TABLE_COUNT), routeTableCount);
 				peer.setPeerId(serverId);
-				pendingPeers.remove(connectionId);
+				peer.setRemoteRoutingTableCounter(remoteRoutingTable);
 				if (!remotePeers.containsKey(serverId)) {
 					remotePeers.put(serverId, peer);
 				} else {
