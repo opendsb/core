@@ -74,7 +74,7 @@ public class RouteNode implements Comparable<RouteNode> {
 	}
 	
 	private void notifySubCountChange() {
-		logger.warn("Notifying subscription status change to topic '" + topic  + "'");
+		logger.trace("Notifying subscription status change to topic '" + topic  + "'");
 		localRouter.routeMessage(new ControlMessage.Builder()
 				.createUpdateRouteCountMessage(UUID.randomUUID().toString(), topic + "@" + localRouter.getId())
 				.addRoutingTableCount(localRouter.getFullSubscriptionCount())
