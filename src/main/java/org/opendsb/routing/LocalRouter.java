@@ -65,7 +65,7 @@ public class LocalRouter implements Router {
 
 	@Override
 	public void routeMessage(Message message, boolean remoteBroadCast) {
-		logger.info("Routing message '" + message.getType() + "' to topic '" + message.getDestination() + "'");
+		logger.trace("Routing message '" + message.getType() + "' to topic '" + message.getDestination() + "'");
 		RoutingTask task = new RoutingTask(routingTable, message);
 		if (remoteBroadCast) {
 			task.setRemoteRouter(remoteRouter);
@@ -76,7 +76,7 @@ public class LocalRouter implements Router {
 	@Override
 	public Subscription subscribe(String topic, Consumer<Message> handler, HandlerPriority priority) {
 
-		logger.debug("subscribing to topic '" + topic + "'");
+		logger.trace("subscribing to topic '" + topic + "'");
 
 		Subscription subscription = null;
 		RouteNode subNode = null;

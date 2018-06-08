@@ -1,6 +1,7 @@
 package org.opendsb.routing.remote.ws;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,10 +42,10 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 
 	public WebSocketPeer(RemoteRouter router, Session session) {
 		super("", router);
+		connected = true;
 		this.session = session;
 		this.connectionId = session.getId();
 	}
-	
 
 	@Override
 	public void connect() throws IOException {
@@ -72,7 +73,8 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 						}
 					}).build();
 				}
-				session = container.connectToServer(wsc, cec, address);
+				session = container.connectToServer(wsc, cec, URI.create(address));
+				connected = true;
 				connectionId = session.getId();
 				logger.info("Connection established to '" + address.toString() + "' with id: '" + connectionId + "'");
 			} catch (DeploymentException e) {
@@ -80,22 +82,14 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 				throw new IOException("Unable to create a connection to the remote peer '" + address.toString() + "'.",
 						e);
 			} catch (IOException | IllegalStateException e) {
-				logger.debug("Error trying to setup a remote websocket connection. Retrying ...");
 				logger.trace("Connection failure reason", e);
 			}
 		}
 	}
 
 	public void onClose(Session session, CloseReason closeReason) {
-		try {
-			router.removePeer(this);
-			peerId = "";
-			if (!shutdown && closeReason.getCloseCode() != CloseCodes.CANNOT_ACCEPT) {
-				connect();
-			}
-		} catch (IOException e) {
-			logger.error("Unable to reconnect", e);
-		}
+		connected = false;
+		router.removePeer(this);
 	}
 	
 	@Override
@@ -131,7 +125,7 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 
 	@Override
 	public void onMessage(String partialMessage, boolean last) {
-		logger.info("Received a partial message");
+		logger.debug("Received a partial message");
 		builder.append(partialMessage);
 		if(last) {
 			String fullMessage = builder.toString();
@@ -143,7 +137,7 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 	@Override
 	public void onMessage(String message) {
 		try {
-			logger.info("decoding full message");
+			logger.debug("decoding full message");
 			onMessage(decoder.decode(message));
 		} catch (DecodeException e) {
 			logger.error("Error decoding message", e);

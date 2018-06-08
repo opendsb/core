@@ -107,6 +107,7 @@ public class RemoteDataPublishingTest {
 	public static class DataHandler implements Consumer<Message> {
 
 		@Override
+		@SuppressWarnings("unchecked")
 		public void accept(Message m) {
 
 			if (m.getType() == MessageType.PUBLISH) {

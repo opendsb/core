@@ -24,7 +24,7 @@ public class WebSocketServer extends Endpoint {
 	public void onOpen(Session session, EndpointConfig config) {
 		WebSocketPeer webSocketPeer = new WebSocketPeer(router, session);
 		session.addMessageHandler(webSocketPeer);
-		router.addPendingPeer(webSocketPeer);
+		router.addPeer(webSocketPeer);
 	}
 
 	@Override
@@ -32,7 +32,7 @@ public class WebSocketServer extends Endpoint {
 		logger.info("Connection to peer closed. Session id '" + session.getId() + "'. Reason code '"
 				+ closeReason.getCloseCode() + "' reason phrase '" + closeReason.getReasonPhrase() + "'");
 		// Search peer using the session Id.
-		RemotePeer peer = router.findPeerByConnectionId(session.getId());
+		RemotePeer peer = router.getPeer(session.getId());
 		if (peer != null) {
 			router.removePeer(peer);
 		}

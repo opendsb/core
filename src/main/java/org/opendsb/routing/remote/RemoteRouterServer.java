@@ -3,8 +3,6 @@ package org.opendsb.routing.remote;
 import java.lang.reflect.Type;
 import java.util.Map;
 
-import javax.websocket.CloseReason.CloseCodes;
-
 import org.apache.log4j.Logger;
 import org.opendsb.messaging.ControlMessage;
 import org.opendsb.messaging.control.ControlMessageType;
@@ -36,32 +34,24 @@ public abstract class RemoteRouterServer extends RemoteRouter {
 
 		RemotePeer peer;
 
-		logger.info("Receiving connection request connection id '" + connectionId + "'");
+		logger.debug("Receiving connection request connection id '" + connectionId + "'");
 
 		try {
-			if (pendingPeers.containsKey(connectionId)) {
-
+			if (peers.containsKey(connectionId)) {
 				String clientId = message.getControlInfo(ControlTokens.CLIENT_ID);
 				String transactionId = message.getControlInfo(ControlTokens.TRANSACTION_ID);
 				Type routeTableCount = new TypeToken<Map<String, Integer>>() {}.getType();
 				Gson gson = new Gson();
 				Map<String, Integer> remoteRoutingTable = gson.fromJson(message.getControlInfo(ControlTokens.ROUTING_TABLE_COUNT), routeTableCount);
-				peer = pendingPeers.remove(connectionId);
+				peer = peers.get(connectionId);
 				peer.setPeerId(clientId);
 				peer.setRemoteRoutingTableCounter(remoteRoutingTable);
-				if (!remotePeers.containsKey(clientId)) {
-					remotePeers.put(clientId, peer);
-					peer.sendMessage(new ControlMessage.Builder()
-							.createConnectionReplyMessage(transactionId, id)
-							.addRoutingTableCount(localRouter.getFullSubscriptionCount())
-							.addServerId(id)
-							.build());
-				} else {
-					peer.closeConnection(CloseCodes.CANNOT_ACCEPT.getCode(),
-							"There is already a peer connected to this server with an id '" + clientId + "'");
-					logger.error("Error trying to establish a connection between client '" + id + "' and server '"
-							+ clientId + "' duplicate connection found client side. Aborting.");
-				}
+				peer.sendMessage(new ControlMessage.Builder()
+						.createConnectionReplyMessage(transactionId, id)
+						.addRoutingTableCount(localRouter.getFullSubscriptionCount())
+						.addServerId(id)
+						.build());
+				peer.activate();
 			} else {
 				logger.error("Cannot complete connection request '" + connectionId + "' pending request not found.");
 			}

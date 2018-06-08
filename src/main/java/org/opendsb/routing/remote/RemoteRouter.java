@@ -1,11 +1,8 @@
 package org.opendsb.routing.remote;
 
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 import org.opendsb.messaging.ControlMessage;
@@ -22,14 +19,18 @@ public abstract class RemoteRouter {
 
 	private static final Logger logger = Logger.getLogger(RemoteRouter.class);
 
-	protected Map<String, RemotePeer> remotePeers = new HashMap<>();
+	// Map<ConnectionId, RemotePeer>
+	protected Map<String, RemotePeer> peers = new ConcurrentHashMap<>();
 
-	protected Map<String, RemotePeer> pendingPeers = new HashMap<>();
-
+	// Map<RemoteAdress, ConnectionId>
+	protected Map<String, String> remoteAddressIndex = new ConcurrentHashMap<>();
+	// Map<PeerId, ConnectionId>
+	protected Map<String, String> peerIdIndex = new ConcurrentHashMap<>();
+	
 	protected Router localRouter;
 
 	protected String id;
-
+	
 	public RemoteRouter(Router localRouter) {
 		super();
 		this.id = localRouter.getId();
@@ -42,10 +43,10 @@ public abstract class RemoteRouter {
 	}
 
 	public void process(String connectionId, ControlMessage message) {
-		logger.info("Processing control message of type '" + message.getControlMessageType() + "'");
+		logger.trace("Processing control message of type '" + message.getControlMessageType() + "'");
 		if ("control".equals(message.getDestination())) {
 			if (message.getControlMessageType() == ControlMessageType.UPDATE_ROUTE_COUNT) {
-				RemotePeer peer = remotePeers.get(message.getLatestHop());
+				RemotePeer peer = peers.get(connectionId);
 				Type routeTableCount = new TypeToken<Map<String, Integer>>() {}.getType();
 				Gson gson = new Gson();
 				Map<String, Integer> remoteRoutingTable = gson.fromJson(message.getControlInfo(ControlTokens.ROUTING_TABLE_COUNT), routeTableCount);
@@ -58,67 +59,51 @@ public abstract class RemoteRouter {
 	
 	protected abstract void doProcess(String connectionId, ControlMessage message);
 
-	public void addPendingPeer(RemotePeer peer) throws IllegalArgumentException {
-		if (pendingPeers.containsKey(peer.getConnectionId())) {
+	public void addPeer(RemotePeer peer) throws IllegalArgumentException {
+		if (peers.containsKey(peer.getConnectionId())) {
 			throw new IllegalArgumentException(
 					"Unable to register peer with a duplicate id '" + peer.getConnectionId() + "'");
 		} else {
-			pendingPeers.put(peer.getConnectionId(), peer);
+			peers.put(peer.getConnectionId(), peer);
 		}
+	}
+	
+	public RemotePeer getPeer(String connectionId) {
+		return peers.get(connectionId);
 	}
 
 	public void removePeer(RemotePeer peer) {
-		String connectionId = peer.getConnectionId();
-		String peerId = peer.getPeerId();
-		pendingPeers.remove(connectionId);
-		remotePeers.remove(peerId);
-	}
-
-	public RemotePeer findPeerByConnectionId(String connectionId) {
-		RemotePeer peer = null;
-
-		peer = pendingPeers.get(connectionId);
-
-		if (peer == null) {
-			Optional<RemotePeer> possiblePeer = remotePeers.values().stream()
-					.filter(p -> p.getConnectionId().equals(connectionId)).findFirst();
-			if (possiblePeer.isPresent()) {
-				peer = possiblePeer.get();
-			}
-		}
-
-		return peer;
+		peers.remove(peer.getConnectionId());
+		peerIdIndex.remove(peer.getPeerId());
+		remoteAddressIndex.remove(peer.getAddress());
 	}
 
 	public abstract void start();
 
 	public void stop() {
-		cleanPeers(pendingPeers);
-		cleanPeers(remotePeers);
+		cleanPeers();
 	}
 
-	protected void cleanPeers(Map<String, RemotePeer> peerMapping) {
-		Iterator<Entry<String, RemotePeer>> it = peerMapping.entrySet().iterator();
-		while (it.hasNext()) {
-			Entry<String, RemotePeer> entry = it.next();
-			entry.getValue().shutdown();
-			it.remove();
+	protected void cleanPeers() {
+		for (RemotePeer peer: peers.values()) {
+			removePeer(peer);
+			peer.shutdown();
 		}
 	}
-
+	
 	public void sendMessage(Message message) {
 		String previousHop = message.getLatestHop();
 		message.setLatestHop(id);
 		// Send the message to all peers except the one that send the message.
-		remotePeers.entrySet().stream().filter(e -> !e.getKey().equals(previousHop))
-				.forEach(e -> {
+		peers.values().stream().filter(peer -> !peer.getPeerId().equals(previousHop))
+				.forEach(peer -> {
 					// SendMesage -> Already checks if the topic is being listened in the peer else does not propagate.
-					e.getValue().sendMessage(message);
+					peer.sendMessage(message);
 				});
 	}
 
 	public void receiveMessage(String connectionId, Message message) {
-		logger.info("Receiveing message from peer '" + connectionId + "' -> type '" + message.getType() + "'");
+		logger.trace("Receiveing message from peer '" + connectionId + "' -> type '" + message.getType() + "'");
 		if (message.getType() == MessageType.CONTROL 
 				&& message instanceof ControlMessage) {
 			process(connectionId, (ControlMessage) message);

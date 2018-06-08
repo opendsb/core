@@ -1,7 +1,6 @@
 package org.opendsb.routing.remote;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,20 +14,41 @@ public abstract class RemotePeer {
 
 	protected boolean shutdown = false;
 
-	protected URI address;
+	protected String address;
 	protected String peerId;
 
 	protected Map<String, Integer> remoteRoutingTableCounter = new ConcurrentHashMap<>();
 	
 	protected String connectionId;
+	
+	protected boolean connected = false;
+	
+	protected boolean pending = true;
 
 	protected RemoteRouter router;
-
+	
 	protected RemotePeer(String address, RemoteRouter router) {
 		super();
-		this.address = URI.create(address);
+		this.address = address;
 		this.router = router;
 		remoteRoutingTableCounter.put("control", 1);
+	}
+	
+	public String getAddress() {
+		return address;
+	}
+
+	public void activate() {
+		connected = true;
+		pending = false;
+	}
+
+	public boolean isConnected() {
+		return connected;
+	}
+
+	public boolean isPending() {
+		return pending;
 	}
 
 	public String getPeerId() {
@@ -51,9 +71,11 @@ public abstract class RemotePeer {
 		this.remoteRoutingTableCounter.clear();
 		this.remoteRoutingTableCounter.putAll(remoteRoutingTableCounter);
 		this.remoteRoutingTableCounter.put("control", 1);
-		logger.info("refreshing remote peer table count");
-		for (String topic : this.remoteRoutingTableCounter.keySet()) {
-			logger.info("Topic: '" + topic + "': " + this.remoteRoutingTableCounter.get(topic));
+		if (logger.isTraceEnabled()) {
+			logger.trace("refreshing remote peer table count");
+			for (String topic : this.remoteRoutingTableCounter.keySet()) {
+				logger.trace("Topic: '" + topic + "': " + this.remoteRoutingTableCounter.get(topic));
+			}
 		}
 	}
 
@@ -96,7 +118,7 @@ public abstract class RemotePeer {
 	public void onMessage(Message message) {
 		router.receiveMessage(connectionId, message);
 	}
-
+	
 	public static class Builder {
 
 		public RemotePeer build(String remoteAddress, RemoteRouter router, String sessionCookie) throws IllegalArgumentException {
