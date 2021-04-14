@@ -79,7 +79,7 @@ public class MessageDecoder implements Decoder.Text<Message> {
 			switch (type) {
 
 			case CALL: {
-				message = gson.fromJson(jsonMessage, CallMessage.class);
+				message = CallMessage.fromJSON(jsonMessage, CallMessage.class);
 				break;
 			}
 			case CONTROL: {

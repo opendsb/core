@@ -25,7 +25,7 @@ public class SimpleWebSocketTest {
 				Thread.sleep(2000);
 				WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 				Session session = container.connectToServer(EchoClient.class,
-						URI.create("ws://localhost:8025/websockets/echo"));
+						URI.create("ws://localhost:1443/aquis-manager/messor"));
 				session.getAsyncRemote().sendText("blabla");
 			} catch (Exception e) {
 			}

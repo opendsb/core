@@ -1,6 +1,6 @@
 package org.opendsb.routing;
 
-import java.util.Map;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.log4j.Logger;
@@ -84,16 +84,16 @@ public class SomeService implements Consumer<Message> {
 			String neighbourhood = "";
 
 			try {
-				Map<String, Object> param = msg.getParameters();
-				if (param.containsKey("neighbourhood")) {
+				List<Object> params = msg.getParameters();
+				if (params.size() == 1) {
 					logger.info("Calling method");
-					neighbourhood = (String) param.get("neighbourhood");
+					neighbourhood = (String) params.get(0);
 					Integer ans = getTemperature(neighbourhood);
 					logger.info("Replying '" + ans + "' to '" + msg.getReplyTo() + "'");
 					client.publishReply(msg.getReplyTo(), ans);
 				} else {
 					throw new IllegalArgumentException(
-							"The obligatory parameter 'neighbourhood' was not found in the call");
+							"Invalid number of arguments");
 				}
 			} catch (IllegalArgumentException e) {
 				client.postFailureReply(msg.getReplyTo(), e.getMessage());

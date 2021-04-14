@@ -57,7 +57,13 @@ public class RouteNode implements Comparable<RouteNode> {
 		}
 		
 		// Parallel processing hook point
-		subscribers.values().stream().sorted().forEach(h -> h.getConsumer().accept(message));
+		subscribers.values().stream().sorted().forEach(h -> {
+			try{
+				h.getConsumer().accept(message);
+			} catch (Exception e) {
+				logger.error("Uanble to process message", e);
+			}
+		});
 		return true;
 	}
 

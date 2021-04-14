@@ -5,7 +5,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
+import org.opendsb.messaging.CallMessage;
 import org.opendsb.messaging.Message;
+import org.opendsb.messaging.MessageType;
 import org.opendsb.routing.remote.ws.WebSocketPeer;
 
 public abstract class RemotePeer {
@@ -68,13 +70,15 @@ public abstract class RemotePeer {
 	}
 
 	public void setRemoteRoutingTableCounter(Map<String, Integer> remoteRoutingTableCounter) {
-		this.remoteRoutingTableCounter.clear();
-		this.remoteRoutingTableCounter.putAll(remoteRoutingTableCounter);
-		this.remoteRoutingTableCounter.put("control", 1);
-		if (logger.isTraceEnabled()) {
-			logger.trace("refreshing remote peer table count");
-			for (String topic : this.remoteRoutingTableCounter.keySet()) {
-				logger.trace("Topic: '" + topic + "': " + this.remoteRoutingTableCounter.get(topic));
+		synchronized (this.remoteRoutingTableCounter) {
+			this.remoteRoutingTableCounter.clear();
+			this.remoteRoutingTableCounter.putAll(remoteRoutingTableCounter);
+			this.remoteRoutingTableCounter.put("control", 1);
+			if (logger.isTraceEnabled()) {
+				logger.trace("refreshing remote peer table count");
+				for (String topic : this.remoteRoutingTableCounter.keySet()) {
+					logger.trace("Topic: '" + topic + "': " + this.remoteRoutingTableCounter.get(topic));
+				}
 			}
 		}
 	}
@@ -90,17 +94,23 @@ public abstract class RemotePeer {
 		
 		boolean send = false;
 		
+		logger.info("Sending remote message to '" + message.getDestination() + "'");
+		
 		// Generate the path like a/b/c in a, a/b, a/b/c
 		for (int i = 0; i < pieces.length; i++) {
 			destination = concat + pieces[i];
-			if (remoteRoutingTableCounter.containsKey(destination) && remoteRoutingTableCounter.get(destination) > 0) {
-				send = true;
-				break;
+			synchronized (remoteRoutingTableCounter) {
+				if (remoteRoutingTableCounter.containsKey(destination) && remoteRoutingTableCounter.get(destination) > 0) {
+					send = true;
+					break;
+				}
 			}
 			concat = destination + "/";
 		}
 		if (send) {
 			doSendMessage(message);
+		} else {
+			logger.info("Unable to send remote message for destination '" + destination + "'");
 		}
 	}
 	
@@ -116,6 +126,14 @@ public abstract class RemotePeer {
 	}
 
 	public void onMessage(Message message) {
+		
+		if (message.getType() == MessageType.CALL) {
+			String replyTo = ((CallMessage)message).getReplyTo();
+			synchronized (remoteRoutingTableCounter) {
+				remoteRoutingTableCounter.put(replyTo, 1);
+			}
+		}
+		
 		router.receiveMessage(connectionId, message);
 	}
 	

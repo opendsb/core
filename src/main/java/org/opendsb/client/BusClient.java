@@ -1,6 +1,6 @@
 package org.opendsb.client;
 
-import java.util.Map;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -16,7 +16,7 @@ public interface BusClient {
 
 	public Subscription subscribe(String topic, Consumer<Message> handler, HandlerPriority priority);
 
-	public CompletableFuture<ReplyMessage> call(String methodTopic, Map<String, Object> parameters);
+	public CompletableFuture<ReplyMessage> call(String methodTopic, List<Object> parameters);
 
 	public void publishReply(String topic, Object reply);
 

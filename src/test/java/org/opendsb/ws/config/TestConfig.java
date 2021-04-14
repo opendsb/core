@@ -18,7 +18,7 @@ import org.opendsb.routing.remote.ws.WebSocketRouterServer;
 
 public class TestConfig implements ServerApplicationConfig {
 
-	private static Subscription subHolder = null;
+	public static Subscription subHolder = null;
 
 	@Override
 	public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {

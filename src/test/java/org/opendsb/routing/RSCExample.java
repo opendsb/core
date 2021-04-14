@@ -1,7 +1,7 @@
 package org.opendsb.routing;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
@@ -31,9 +31,10 @@ public class RSCExample {
 
 		SomeService service = new SomeService(router, "weatherService");
 		service.registerMyself();
+		
+		Object[] parametersArr = { "Fundao" };
 
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("neighbourhood", "Fundao");
+		List<Object> parameters = Arrays.asList(parametersArr);
 
 		String serviceName = "Brasil/RJ/Clima/getTemperature";
 
@@ -64,8 +65,9 @@ public class RSCExample {
 		SomeService service = new SomeService(router, "weatherService");
 		service.registerMyself();
 
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("neighbourhood", "Onde Judas perdeu as botas");
+		String[] parametersArr = { "Onde Judas perdeu as botas" };
+
+		List<Object> parameters = Arrays.asList((Object[])parametersArr);
 
 		Future<ReplyMessage> reply = client.call("Brasil/RJ/Clima/getTemperature", parameters);
 

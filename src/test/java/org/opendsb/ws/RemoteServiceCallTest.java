@@ -1,9 +1,8 @@
 package org.opendsb.ws;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -89,11 +88,10 @@ public class RemoteServiceCallTest {
 				remote.start();
 
 				Thread.sleep(200);
+				
+				Object[] parametersArr = { 135, "CORRELATION_123B83DC" };
 
-				Map<String, Object> parameters = new HashMap<>();
-
-				parameters.put("param", 135);
-				parameters.put("correlation", "CORRELATION_123B83DC");
+				List<Object> parameters = Arrays.asList(parametersArr);
 
 				// Native Publish
 				Future<ReplyMessage> ans = client.call(topic, parameters);
@@ -124,12 +122,12 @@ public class RemoteServiceCallTest {
 			if (m.getType() == MessageType.CALL) {
 				System.out.println("Call message identified...");
 				CallMessage cMsg = (CallMessage) m;
-				Map<String, Object> parameters = cMsg.getParameters();
+				List<Object> parameters = cMsg.getParameters();
 				String replyTopic = cMsg.getReplyTo();
 				System.out.println("Retreiving call parameters...");
-				if (parameters.containsKey("correlation") && parameters.containsKey("param")) {
-					int param = ((Number) parameters.get("param")).intValue();
-					String correlation = (String) parameters.get("correlation");
+				if (parameters.size() == 2) {
+					int param = ((Number) parameters.get(0)).intValue();
+					String correlation = (String) parameters.get(1);
 					System.out.println("Executing service...");
 					client.publishReply(replyTopic, new ReplyVO(correlation, 10 * param));
 				} else {

@@ -1,10 +1,11 @@
 package org.opendsb.client;
 
-import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -55,13 +56,15 @@ public class DefaultBusClient implements BusClient {
 	}
 
 	@Override
-	public CompletableFuture<ReplyMessage> call(String methodTopic, Map<String, Object> parameters) {
+	public CompletableFuture<ReplyMessage> call(String methodTopic, List<Object> parameters) {
 
 		String replyTo = "reply-" + UUID.randomUUID().toString() + "/" + methodTopic;
 		
 		CallMessage callMsg = new CallMessage(methodTopic, router.getId(), parameters, replyTo);
 		
-		Caller response = new Caller(this, timeoutMills, methodTopic, replyTo, callMsg.getMessageId());		
+		Caller response = new Caller(this, timeoutMills, methodTopic, replyTo, callMsg.getMessageId());	
+		
+		logger.info("Routing call message to '" + methodTopic + "' - '" + replyTo + "'");
 		
 		router.routeMessage(callMsg, true);
 
@@ -70,9 +73,9 @@ public class DefaultBusClient implements BusClient {
 	
 	private static class Caller extends CompletableFuture<ReplyMessage> {
 		
-		private boolean acknowledged = false; 
-		
 		private Subscription replyTopic;
+		
+		private ScheduledFuture<?> timeoutTask;
 		
 		public Caller(BusClient busClient, Long timeoutMills, String topic, String replyTo, String transactionId) {
 			super();
@@ -80,7 +83,8 @@ public class DefaultBusClient implements BusClient {
 				if (msg instanceof ControlMessage) {
 					ControlMessage cMsg = (ControlMessage)msg;
 					if(cMsg.getControlMessageType().equals(ControlMessageType.CALL_ACK) && cMsg.getControlInfo(ControlTokens.TRANSACTION_ID).equals(transactionId)) {
-						acknowledged = true;
+						logger.info("Request for '" + topic + "' acknowledged - " + replyTo + "'");
+						timeoutTask.cancel(true);
 					}
 					return;
 				}
@@ -89,12 +93,10 @@ public class DefaultBusClient implements BusClient {
 					replyTopic.cancel();
 				}
 			});
-			executor.schedule(() -> {
-				if (!acknowledged) {
-					logger.info("Request for '" + topic + "' timed out");
-					replyTopic.cancel();
-					this.completeExceptionally(new RuntimeException("Request for '" + topic + "' timed out"));
-				}
+			timeoutTask = executor.schedule(() -> {
+				logger.info("Request for '" + topic + "' timed out - " + replyTo + "'");
+				replyTopic.cancel();
+				this.completeExceptionally(new RuntimeException("Request for '" + topic + "' timed out"));
 			}, timeoutMills, TimeUnit.MILLISECONDS);
 		}
 	}
