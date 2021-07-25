@@ -1,0 +1,113 @@
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    color: #000;
+    font-size: 10pt;
+}
+
+fieldset {
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    border: 1px solid #777;
+    min-width: 0;
+}
+
+legend {
+    padding: 0 5px;
+    color: #777;
+    font-size: 11pt;
+    font-weight: bold;
+}
+
+label {
+    color: #777;
+    font-weight: bold;
+}
+
+#connectionStatus {
+    font-weight: bold;
+}
+
+#content {
+    padding: 10px;
+    margin-left: 200px;
+    min-width: 600px
+}
+
+#serverUrl {
+    width: 500px;
+    padding: 1px 3px;
+    border: 1px solid #999;
+}
+
+#disconnectButton {
+    display: none;
+}
+
+#requestArea textarea {
+    min-width: 300px;
+    height: 2em;
+    padding: 0 3px;
+    /*line-height: 150%;*/
+}
+
+#messages {
+    height: 300px;
+    margin: 5px 0;
+    padding: 0 5px;
+    overflow: auto;
+    border: 1px dotted #777;
+    line-height: 150%;
+}
+
+#messages pre {
+    width: 100%;
+    color: #000;
+    margin: 0;
+}
+
+#messages pre.sent {
+    color: #f63;
+}
+
+#sidebar {
+    padding: 0;
+    padding-right: 10px;
+    margin: 0;
+    font-size: 11px;
+    width: 200px;
+    position: absolute;
+    left: 0;
+    border-right: solid 1px #e9eced;
+    height: calc(100vh - 55px);
+}
+
+#history {
+    width: 175px;
+    list-style: none;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+#history a {
+    width: 165px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: block;
+    overflow: hidden
+}
+
+#history li{
+    position: relative;
+}
+
+.removeHistory
+{
+    text-decoration: underline;
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+
