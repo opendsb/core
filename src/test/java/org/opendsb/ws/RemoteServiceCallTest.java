@@ -1,6 +1,7 @@
 package org.opendsb.ws;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,16 +19,13 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opendsb.client.BusClient;
-import org.opendsb.client.DefaultBusClient;
 import org.opendsb.messaging.CallMessage;
 import org.opendsb.messaging.Message;
 import org.opendsb.messaging.MessageType;
 import org.opendsb.messaging.ReplyMessage;
 import org.opendsb.messaging.Subscription;
-import org.opendsb.routing.LocalRouter;
 import org.opendsb.routing.Router;
-import org.opendsb.routing.remote.RemoteRouter;
-import org.opendsb.routing.remote.RemoteRouterClient;
+import org.opendsb.routing.remote.RemotePeerConnection;
 import org.opendsb.routing.remote.ws.WebSocketRouterServer;
 import org.opendsb.ws.util.WebSocketServerHelper;
 
@@ -79,27 +77,30 @@ public class RemoteServiceCallTest {
 
 				System.out.println("Connecting to server '" + connectionString + "'");
 
-				Router router = new LocalRouter();
-				BusClient client = DefaultBusClient.of(router);
-
-				RemoteRouter remote = new RemoteRouterClient(router,
-						new HashSet<String>(Arrays.asList(connectionString)));
-
-				remote.start();
-
-				Thread.sleep(200);
+				Router router = Router.newRouter();
+				BusClient client = BusClient.of(router);
 				
-				Object[] parametersArr = { 135, "CORRELATION_123B83DC" };
+				RemotePeerConnection connection = router.connectToRemoteRouter(connectionString, new HashMap<>());
 
-				List<Object> parameters = Arrays.asList(parametersArr);
+				connection.whenConnected().thenRun(() -> {
+					Object[] parametersArr = { 135, "CORRELATION_123B83DC" };
 
-				// Native Publish
-				Future<ReplyMessage> ans = client.call(topic, parameters);
+					List<Object> parameters = Arrays.asList(parametersArr);
 
-				ReplyVO reply = (ReplyVO) ans.get().getData();
+					// Native Publish
+					Future<ReplyMessage> ans = client.call(topic, parameters);
+					
+					try {
 
-				System.out.println(
-						"Reply received correlation '" + reply.correlation + "', data: '" + reply.getResult() + "'.");
+						ReplyVO reply = (ReplyVO) ans.get().getData();
+	
+						System.out.println(
+								"Reply received correlation '" + reply.correlation + "', data: '" + reply.getResult() + "'.");
+					} catch(Exception e) {
+						e.printStackTrace();
+					}
+				});
+				
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -161,8 +162,8 @@ public class RemoteServiceCallTest {
 
 		@Override
 		public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
-			Router router = new LocalRouter();
-			BusClient client = DefaultBusClient.of(router);
+			Router router = Router.newRouter();
+			BusClient client = BusClient.of(router);
 			handler.setClient(client);
 			subscription = client.subscribe(topic, handler);
 			WebSocketRouterServer server = new WebSocketRouterServer(router, endPoint, null);

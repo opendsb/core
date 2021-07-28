@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 
 import org.apache.log4j.Logger;
 import org.opendsb.client.BusClient;
-import org.opendsb.client.DefaultBusClient;
 import org.opendsb.messaging.CallMessage;
 import org.opendsb.messaging.Message;
 import org.opendsb.messaging.Subscription;
@@ -22,7 +21,7 @@ public class SomeService implements Consumer<Message> {
 
 	public SomeService(Router localRouter, String name) {
 		super();
-		this.client = DefaultBusClient.of(localRouter);
+		this.client = BusClient.of(localRouter);
 		this.name = name;
 	}
 

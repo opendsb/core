@@ -1,6 +1,5 @@
 package org.opendsb.ws;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -18,15 +17,12 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opendsb.client.BusClient;
-import org.opendsb.client.DefaultBusClient;
 import org.opendsb.messaging.DataMessage;
 import org.opendsb.messaging.Message;
 import org.opendsb.messaging.MessageType;
 import org.opendsb.messaging.Subscription;
-import org.opendsb.routing.LocalRouter;
 import org.opendsb.routing.Router;
-import org.opendsb.routing.remote.RemoteRouter;
-import org.opendsb.routing.remote.RemoteRouterClient;
+import org.opendsb.routing.remote.RemotePeerConnection;
 import org.opendsb.routing.remote.ws.WebSocketRouterServer;
 import org.opendsb.ws.util.WebSocketServerHelper;
 
@@ -79,24 +75,21 @@ public class RemoteDataPublishingTest {
 
 				System.out.println("Connecting to server '" + connectionString + "'");
 
-				Router router = new LocalRouter();
-				BusClient client = DefaultBusClient.of(router);
+				Router router = Router.newRouter();
+				BusClient client = BusClient.of(router);
+				
+				RemotePeerConnection connection = router.connectToRemoteRouter(connectionString, new HashMap<>());
+				
+				connection.whenConnected().thenRun(() -> {
+					Map<String, Object> data = new HashMap<>();
 
-				RemoteRouter remote = new RemoteRouterClient(router,
-						new HashSet<String>(Arrays.asList(connectionString)));
+					data.put("someValue", 135.87);
+					data.put("title", "Hello");
+					data.put("message", "I've come to say hi!");
 
-				remote.start();
-
-				Thread.sleep(200);
-
-				Map<String, Object> data = new HashMap<>();
-
-				data.put("someValue", 135.87);
-				data.put("title", "Hello");
-				data.put("message", "I've come to say hi!");
-
-				// Native Publish
-				client.publishData(topic, data);
+					// Native Publish
+					client.publishData(topic, data);
+				});
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -122,8 +115,8 @@ public class RemoteDataPublishingTest {
 
 		@Override
 		public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
-			Router router = new LocalRouter();
-			BusClient client = DefaultBusClient.of(router);
+			Router router = Router.newRouter();
+			BusClient client = BusClient.of(router);
 			subscription = client.subscribe(topic, handler);
 			WebSocketRouterServer server = new WebSocketRouterServer(router, endPoint, null);
 			Set<ServerEndpointConfig> configs = new HashSet<>();

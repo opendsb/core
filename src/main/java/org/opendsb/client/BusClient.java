@@ -8,6 +8,7 @@ import org.opendsb.messaging.Message;
 import org.opendsb.messaging.ReplyMessage;
 import org.opendsb.messaging.Subscription;
 import org.opendsb.routing.HandlerPriority;
+import org.opendsb.routing.Router;
 
 public interface BusClient {
 	public void publishData(String topic, Object data);
@@ -21,4 +22,8 @@ public interface BusClient {
 	public void publishReply(String topic, Object reply);
 
 	public void postFailureReply(String topic, String reason);
+	
+	public static BusClient of(Router router) {
+		return new DefaultBusClient(router);
+	}
 }

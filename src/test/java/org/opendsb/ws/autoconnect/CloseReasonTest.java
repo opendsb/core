@@ -1,6 +1,6 @@
 package org.opendsb.ws.autoconnect;
 
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -13,10 +13,9 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.opendsb.routing.LocalRouter;
+import org.opendsb.routing.DefaultRouter;
 import org.opendsb.routing.Router;
-import org.opendsb.routing.remote.RemoteRouter;
-import org.opendsb.routing.remote.RemoteRouterClient;
+import org.opendsb.routing.remote.RemotePeerConnection;
 import org.opendsb.routing.remote.ws.WebSocketRouterServer;
 import org.opendsb.ws.util.WebSocketServerHelper;
 
@@ -59,16 +58,13 @@ public class CloseReasonTest {
 				String connectionString = "ws://" + host + ":" + port + path + endPoint;
 				System.out.println("Connecting to server '" + connectionString + "'");
 
-				Router router = new LocalRouter();
+				Router router = Router.newRouter();
 
-				RemoteRouter remote = new RemoteRouterClient(router,
-						new HashSet<String>(Arrays.asList(connectionString)));
-
-				remote.start();
+				RemotePeerConnection connection = router.connectToRemoteRouter(connectionString, new HashMap<>());
 
 				Thread.sleep(5000);
 
-				remote.stop();
+				connection.getRemotePeer().disconnect();
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -80,7 +76,7 @@ public class CloseReasonTest {
 
 		@Override
 		public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
-			Router router = new LocalRouter();
+			Router router = new DefaultRouter();
 			server = new WebSocketRouterServer(router, endPoint, null);
 			Set<ServerEndpointConfig> configs = new HashSet<>();
 			configs.add(server.getConfig());

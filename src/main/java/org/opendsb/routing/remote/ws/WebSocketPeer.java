@@ -5,12 +5,12 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
 import javax.websocket.CloseReason.CloseCodes;
 import javax.websocket.ContainerProvider;
-import javax.websocket.DecodeException;
 import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
 import javax.websocket.MessageHandler;
@@ -19,8 +19,9 @@ import javax.websocket.WebSocketContainer;
 
 import org.apache.log4j.Logger;
 import org.opendsb.messaging.Message;
+import org.opendsb.routing.Router;
 import org.opendsb.routing.remote.RemotePeer;
-import org.opendsb.routing.remote.RemoteRouter;
+import org.opendsb.routing.remote.RemotePeerConnection;
 
 public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<String>, MessageHandler.Partial<String> {
 
@@ -30,38 +31,43 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 	
 	private String sessionCookie = "";
 	
-	private MessageDecoder decoder = new MessageDecoder();
-	private MessageEncoder encoder = new MessageEncoder();
+	private GsonCoder coder = new GsonCoder();
 	
 	private StringBuilder builder = new StringBuilder();
+	
+	protected Map<Class<?>, Object> typeAdapterIdx = new ConcurrentHashMap<>();
 
-	public WebSocketPeer(String address, String sessionCookie, RemoteRouter router) {
-		super(address, router);
+	
+	public WebSocketPeer(Router router, String address, String sessionCookie) {
+		super(router, address);
 		this.sessionCookie = sessionCookie;
 	}
 
-	public WebSocketPeer(RemoteRouter router, Session session) {
-		super("", router);
-		connected = true;
+	public WebSocketPeer(Router router, Session session) {
+		super(router, "");
 		this.session = session;
 		this.connectionId = session.getId();
 	}
 
+	public GsonCoder getCoder() {
+		return coder;
+	}
+
 	@Override
-	public void connect() throws IOException {
+	public RemotePeerConnection doConnect() throws IOException {
 
 		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 
-		WebSocketClient wsc = new WebSocketClient(this);
+		WebSocketEndPointClient wsc = new WebSocketEndPointClient(this);
 
-		while (session == null) {
-			try {
-				ClientEndpointConfig cec;
-				if (sessionCookie == null || sessionCookie.isEmpty()) {
-					cec = ClientEndpointConfig.Builder.create()
-							.build();
-				} else {
-					cec = ClientEndpointConfig.Builder.create().configurator(new ClientEndpointConfig.Configurator() {
+		try {
+			ClientEndpointConfig cec;
+			if (sessionCookie == null || sessionCookie.isEmpty()) {
+				cec = ClientEndpointConfig.Builder.create()
+						.build();
+			} else {
+				cec = ClientEndpointConfig.Builder.create().configurator(
+					new ClientEndpointConfig.Configurator() {
 						@Override
 						public void beforeRequest(Map<String, List<String>> headers) {
 							super.beforeRequest(headers);
@@ -71,34 +77,25 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 							cookieList.add(sessionCookie);
 							headers.put("Cookie", cookieList);
 						}
-					}).build();
-				}
-				session = container.connectToServer(wsc, cec, URI.create(address));
-				connected = true;
-				connectionId = session.getId();
-				logger.info("Connection established to '" + address.toString() + "' with id: '" + connectionId + "'");
-			} catch (DeploymentException e) {
-				logger.info("Error trying to setup a remote websocket connection.", e);
-				throw new IOException("Unable to create a connection to the remote peer '" + address.toString() + "'.",
-						e);
-			} catch (IOException | IllegalStateException e) {
-				logger.trace("Connection failure reason", e);
+					}
+				).build();
 			}
+			session = container.connectToServer(wsc, cec, URI.create(address));
+			
+			wireConnected = true;
+			connectionId = session.getId();
+			
+			logger.info("Connection established to '" + address.toString() + "' with id: '" + connectionId + "'");
+			
+		} catch (DeploymentException e) {
+			
+			logger.info("Error trying to setup a remote websocket connection.", e);
+			
+			throw new IOException("Unable to create a connection to the remote peer '" + address.toString() + "'.",
+					e);
 		}
-	}
-
-	public void onClose(Session session, CloseReason closeReason) {
-		connected = false;
-		router.removePeer(this);
-	}
-	
-	@Override
-	public void closeConnection() {
-		try {
-			session.close();
-		} catch (IOException e) {
-			logger.debug("Error closing connection", e);
-		}
+		
+		return new RemotePeerConnection(this);
 	}
 
 	@Override
@@ -114,7 +111,9 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 	public void doSendMessage(Message message) {
 		try {
 			synchronized(session) {
-				session.getBasicRemote().sendText(encoder.encode(message));
+				String encodedMessage = coder.encode(message);
+				logger.debug("Sending message: " + encodedMessage);
+				session.getBasicRemote().sendText(encodedMessage);
 			}
 		} catch (EncodeException | IOException e) {
 			logger.error("Error encoding message", e);
@@ -125,7 +124,7 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 
 	@Override
 	public void onMessage(String partialMessage, boolean last) {
-		logger.debug("Received a partial message");
+		logger.trace("Received a partial message");
 		builder.append(partialMessage);
 		if(last) {
 			String fullMessage = builder.toString();
@@ -137,9 +136,9 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 	@Override
 	public void onMessage(String message) {
 		try {
-			logger.debug("decoding full message");
-			onMessage(decoder.decode(message));
-		} catch (DecodeException e) {
+			logger.trace("decoding full message: " + message);
+			messageReceived(coder.decode(message));
+		} catch (Throwable e) {
 			logger.error("Error decoding message", e);
 		}
 	}

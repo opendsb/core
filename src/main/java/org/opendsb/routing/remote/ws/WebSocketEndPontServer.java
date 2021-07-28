@@ -6,25 +6,30 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 
 import org.apache.log4j.Logger;
+import org.opendsb.routing.Router;
 import org.opendsb.routing.remote.RemotePeer;
-import org.opendsb.routing.remote.RemoteRouterServer;
 
-public class WebSocketServer extends Endpoint {
+public class WebSocketEndPontServer extends Endpoint {
 
-	private static final Logger logger = Logger.getLogger(WebSocketServer.class);
+	private static final Logger logger = Logger.getLogger(WebSocketEndPontServer.class);
 
-	private RemoteRouterServer router;
+	private Router router;
+	
+	private WebSocketRouterServer server;
 
-	public WebSocketServer(RemoteRouterServer router) {
+	public WebSocketEndPontServer(Router router, WebSocketRouterServer server) {
 		super();
 		this.router = router;
+		this.server = server;
 	}
 
 	@Override
 	public void onOpen(Session session, EndpointConfig config) {
 		WebSocketPeer webSocketPeer = new WebSocketPeer(router, session);
+		webSocketPeer.connectionOpenned();
 		session.addMessageHandler(webSocketPeer);
-		router.addPeer(webSocketPeer);
+		
+		server.peerConnected(webSocketPeer);
 	}
 
 	@Override
@@ -34,7 +39,12 @@ public class WebSocketServer extends Endpoint {
 		// Search peer using the session Id.
 		RemotePeer peer = router.getPeer(session.getId());
 		if (peer != null) {
-			router.removePeer(peer);
+			peer.connectionClosed(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
 		}
+	}
+	
+	@Override
+	public void onError(Session session, Throwable thr) {
+		logger.warn("Error detected on bus remote server sessionId '" + session.getId() + "'", thr);
 	}
 }

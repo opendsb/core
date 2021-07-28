@@ -9,7 +9,6 @@ import org.apache.log4j.PropertyConfigurator;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opendsb.client.BusClient;
-import org.opendsb.client.DefaultBusClient;
 import org.opendsb.messaging.ReplyMessage;
 
 public class RSCExample {
@@ -26,8 +25,8 @@ public class RSCExample {
 	@Test
 	public void testSuccessfulRSC() throws Exception {
 
-		Router router = new LocalRouter();
-		BusClient client = DefaultBusClient.of(router);
+		Router router = Router.newRouter();
+		BusClient client = BusClient.of(router);
 
 		SomeService service = new SomeService(router, "weatherService");
 		service.registerMyself();
@@ -59,8 +58,8 @@ public class RSCExample {
 	@Test
 	public void testFailedRSC() throws Exception {
 
-		Router router = new LocalRouter();
-		BusClient client = DefaultBusClient.of(router);
+		Router router = Router.newRouter();
+		BusClient client = BusClient.of(router);
 
 		SomeService service = new SomeService(router, "weatherService");
 		service.registerMyself();

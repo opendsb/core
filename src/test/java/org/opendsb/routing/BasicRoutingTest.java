@@ -5,7 +5,6 @@ import org.apache.log4j.PropertyConfigurator;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opendsb.client.BusClient;
-import org.opendsb.client.DefaultBusClient;
 import org.opendsb.messaging.Subscription;
 
 public class BasicRoutingTest {
@@ -22,9 +21,9 @@ public class BasicRoutingTest {
 	@Test
 	public void testSimpleRouting() throws Exception {
 
-		Router router = new LocalRouter();
+		Router router = Router.newRouter();
 
-		BusClient client = DefaultBusClient.of(router);
+		BusClient client = BusClient.of(router);
 
 		logger.info("Starting routing test ...");
 
@@ -71,10 +70,10 @@ public class BasicRoutingTest {
 
 		logger.info("Subscription tests Begin -----------------------------------------------------------------------");
 
-		Router router = new LocalRouter();
+		Router router = Router.newRouter();
 
-		BusClient client = DefaultBusClient.of(router);
-
+		BusClient client = BusClient.of(router);
+		
 		String topic = "Brasil/BA";
 		Subscription sub1 = client.subscribe(topic, m -> System.out
 				.println("Message received\n  Receptor '" + topic + "'\n  messageId'" + m.getMessageId() + "'"));

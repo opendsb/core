@@ -39,11 +39,7 @@ public class DefaultBusClient implements BusClient {
 	
 	private long timeoutMills = 1000L;
  
-	public static BusClient of(Router router) {
-		return new DefaultBusClient(router);
-	}
-
-	private DefaultBusClient(Router router) {
+	public DefaultBusClient(Router router) {
 		this.router = router;
 	}
 	
@@ -64,7 +60,7 @@ public class DefaultBusClient implements BusClient {
 		
 		Caller response = new Caller(this, timeoutMills, methodTopic, replyTo, callMsg.getMessageId());	
 		
-		logger.info("Routing call message to '" + methodTopic + "' - '" + replyTo + "'");
+		logger.debug("Routing call message to '" + methodTopic + "' - '" + replyTo + "'");
 		
 		router.routeMessage(callMsg, true);
 
@@ -83,7 +79,7 @@ public class DefaultBusClient implements BusClient {
 				if (msg instanceof ControlMessage) {
 					ControlMessage cMsg = (ControlMessage)msg;
 					if(cMsg.getControlMessageType().equals(ControlMessageType.CALL_ACK) && cMsg.getControlInfo(ControlTokens.TRANSACTION_ID).equals(transactionId)) {
-						logger.info("Request for '" + topic + "' acknowledged - " + replyTo + "'");
+						logger.debug("Request for '" + topic + "' acknowledged - " + replyTo + "'");
 						timeoutTask.cancel(true);
 					}
 					return;
@@ -94,7 +90,7 @@ public class DefaultBusClient implements BusClient {
 				}
 			});
 			timeoutTask = executor.schedule(() -> {
-				logger.info("Request for '" + topic + "' timed out - " + replyTo + "'");
+				logger.debug("Request for '" + topic + "' timed out - " + replyTo + "'");
 				replyTopic.cancel();
 				this.completeExceptionally(new RuntimeException("Request for '" + topic + "' timed out"));
 			}, timeoutMills, TimeUnit.MILLISECONDS);

@@ -3,43 +3,36 @@ package org.opendsb.json;
 import java.lang.reflect.Type;
 
 import org.apache.log4j.Logger;
+import org.opendsb.json.info.DefaultData;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 
-@SuppressWarnings("unused")
-public class TypedData {
-	
-	private Class<?> dataType;
+public abstract class TypedData {
 	
 	private Object data;
 	
-	private TypedData() {
-		super();
-	}
+	protected String concreteType = "";
 
-	public TypedData(Object data) {
+
+	public TypedData(Object data, String concreteType) {
 		super();
 		this.data = data;
-		if (data != null) {
-			this.dataType = data.getClass();
-		}	
+		this.concreteType = concreteType;
 	}
-
-	public Class<?> getDataType() {
-		return dataType;
-	}
-
+	
 	public Object getData() {
 		return data;
 	}
-	
-	public static class TypedDataAdapter implements JsonDeserializer<TypedData>, JsonSerializer<TypedData> {
+
+	public String getConcreteType() {
+		return concreteType;
+	}
+
+	public static class TypedDataAdapter implements JsonDeserializer<TypedData> {
 
 		private static final Logger logger = Logger.getLogger(TypedDataAdapter.class);
 
@@ -50,37 +43,27 @@ public class TypedData {
 		@Override
 		public TypedData deserialize(JsonElement jsonElement, Type arg1, JsonDeserializationContext context)
 				throws JsonParseException {
-
-			String className = "";
-			TypedData typedData = new TypedData(null);
 			
-			JsonObject obj = jsonElement.getAsJsonObject();
-
+			Object data = null;
+			
 			try {
 				
-				Object data = null;
+				logger.trace("Decoding TypedData '" + jsonElement.toString() + "'");
 				
-				if (obj.has("dataType") && obj.has("data")) {
-					className = obj.get("dataType").getAsString();
-					
-					Class<?> type = Class.forName(className);
-					data = context.deserialize(obj.get("data"), type);
-					
-					typedData = new TypedData(data);
+				JsonObject obj = jsonElement.getAsJsonObject();
+			
+				if (obj.has("concreteType")) {
+					Class<?> concreteClass = Class.forName(obj.get("concreteType").getAsString());
+					data = context.deserialize(jsonElement, concreteClass);
+				} else {
+					data = new DefaultData(null);
 				}
+				
 			} catch (Exception e) {
-				logger.warn("Error decoding a datapackage. An empty value will be assigned", e);
+				throw new JsonParseException(e);
 			}
-
-			return typedData;
-		}
-
-		@Override
-		public JsonElement serialize(TypedData data, Type arg1, JsonSerializationContext context) {
-			JsonObject jObj = new JsonObject();
-			jObj.add("data", context.serialize(data.getData()));
-			jObj.addProperty("dataType", data.getDataType() != null ? data.getDataType().getName() : null);
-			return jObj;
+			
+			return (TypedData)data;
 		}
 	}
 }

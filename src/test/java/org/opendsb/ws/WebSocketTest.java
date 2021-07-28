@@ -3,8 +3,7 @@ package org.opendsb.ws;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -17,10 +16,8 @@ import org.glassfish.tyrus.server.Server;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opendsb.client.BusClient;
-import org.opendsb.client.DefaultBusClient;
-import org.opendsb.routing.LocalRouter;
 import org.opendsb.routing.Router;
-import org.opendsb.routing.remote.RemoteRouterClient;
+import org.opendsb.routing.remote.RemotePeerConnection;
 import org.opendsb.ws.config.TestConfig;
 
 public class WebSocketTest {
@@ -40,19 +37,22 @@ public class WebSocketTest {
 		exec.submit(() -> {
 			try {
 				Thread.sleep(1000);
-				Router localRouter = new LocalRouter();
-				BusClient client = DefaultBusClient.of(localRouter);
-				RemoteRouterClient router = new RemoteRouterClient(localRouter,
-						new HashSet<>(Arrays.asList("ws://localhost:8025/websockets/mainRouter")));
-				router.start();
-				Thread.sleep(1000);
-				client.publishData("org/openDSB/test", "I have come from the client.");
+				
+				Router router = Router.newRouter();
+				
+				RemotePeerConnection connection = router.connectToRemoteRouter("ws://localhost:8025/websockets/mainRouter", new HashMap<>());
+				
+				connection.whenConnected().thenRun(() -> {
+					BusClient client = BusClient.of(router);
+					client.publishData("org/openDSB/test", "I have come from the client.");
+				});
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		});
 
-		runServer(null);
+		runServer(TestConfig.class);
 	}
 
 	// @Test
@@ -88,7 +88,7 @@ public class WebSocketTest {
 
 		// replace class with a class object from an implementation of
 		// javax.websocket.server.ServerApplicationConfig
-		Server server = new Server("localhost", 8025, "/websockets", null, TestConfig.class);
+		Server server = new Server("localhost", 8025, "/websockets", null, webSocketEndpoint);
 
 		try {
 			Thread.sleep(100);
