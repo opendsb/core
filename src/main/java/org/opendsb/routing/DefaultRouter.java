@@ -145,7 +145,7 @@ public class DefaultRouter implements Router {
 			RemotePeer peer = new RemotePeer.Builder().build(this, address, opt);
 			return peer.connect();
 		} catch (Exception e) {
-			logger.error("Failure establishing connection to address '" + address + "'", e);
+			logger.debug("Failure establishing connection to address '" + address + "'", e);
 			throw new IOException("Unable to establish connection with server at '" + address + "'", e);
 		}
 		

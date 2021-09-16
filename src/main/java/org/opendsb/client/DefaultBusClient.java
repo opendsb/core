@@ -37,7 +37,7 @@ public class DefaultBusClient implements BusClient {
 
 	private Router router;
 	
-	private long timeoutMills = 1000L;
+	private long timeoutMills = 5000L;
  
 	public DefaultBusClient(Router router) {
 		this.router = router;
@@ -76,6 +76,7 @@ public class DefaultBusClient implements BusClient {
 		public Caller(BusClient busClient, Long timeoutMills, String topic, String replyTo, String transactionId) {
 			super();
 			replyTopic = busClient.subscribe(replyTo, (msg) -> {
+				
 				if (msg instanceof ControlMessage) {
 					ControlMessage cMsg = (ControlMessage)msg;
 					if(cMsg.getControlMessageType().equals(ControlMessageType.CALL_ACK) && cMsg.getControlInfo(ControlTokens.TRANSACTION_ID).equals(transactionId)) {
@@ -85,6 +86,9 @@ public class DefaultBusClient implements BusClient {
 					return;
 				}
 				if (msg instanceof ReplyMessage) {
+					
+					logger.debug("Reply message received for '" + replyTo + "'");
+					
 					this.complete((ReplyMessage)msg);
 					replyTopic.cancel();
 				}

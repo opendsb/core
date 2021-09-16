@@ -89,7 +89,7 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 			
 		} catch (DeploymentException e) {
 			
-			logger.info("Error trying to setup a remote websocket connection.", e);
+			logger.debug("Error trying to setup a remote websocket connection.", e);
 			
 			throw new IOException("Unable to create a connection to the remote peer '" + address.toString() + "'.",
 					e);
