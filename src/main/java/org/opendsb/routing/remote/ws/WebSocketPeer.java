@@ -82,8 +82,7 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 			}
 			session = container.connectToServer(wsc, cec, URI.create(address));
 			
-			wireConnected = true;
-			connectionId = session.getId();
+			wireConnected = true;			
 			
 			logger.info("Connection established to '" + address.toString() + "' with id: '" + connectionId + "'");
 			

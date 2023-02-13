@@ -20,7 +20,8 @@ public class WebSocketEndPointClient extends Endpoint {
 
 	@Override
 	public void onOpen(Session session, EndpointConfig config) {
-		webSocketPeer.connectionOpenned();
+		webSocketPeer.setConnectionId(session.getId());
+		webSocketPeer.connectionOpenned();		
 		session.addMessageHandler(webSocketPeer);
 	}
 

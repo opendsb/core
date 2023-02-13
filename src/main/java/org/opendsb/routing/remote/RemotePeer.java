@@ -80,6 +80,10 @@ public abstract class RemotePeer {
 		return remoteRoutingTableCounter;
 	}
 	
+	public void setConnectionId(String connectionId) {
+		this.connectionId = connectionId;
+	}
+
 	public void addConnectedFuture(CompletableFuture<Void> connectedFuture) {
 		synchronized (connectedFutures) {
 			connectedFutures.add(connectedFuture);
