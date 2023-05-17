@@ -18,7 +18,6 @@
 		<developerConnection>scm:git:git@github.com:opendsb/core.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
-
 	<issueManagement>
 		<url>https://github.com/opendsb/core</url>
 	</issueManagement>
@@ -27,8 +26,6 @@
 		<url>https://opendsb.ci.cloudbees.com/job/core/</url>
 	</ciManagement>
 	<description>https://github.com/opendsb/core</description>
-
-
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -41,19 +38,6 @@
 		<project.java.version>1.8</project.java.version>
 		<project.javabin.version>1.8</project.javabin.version>
 	</properties>
-<!-- 	<pluginRepositories> -->
-<!-- 		<pluginRepository> -->
-<!-- 			<id>jsweet-plugins-release</id> -->
-<!-- 			<name>plugins-release</name> -->
-<!-- 			<url>http://repository.jsweet.org/artifactory/plugins-release-local</url> -->
-<!-- 		</pluginRepository> -->
-<!-- 		<pluginRepository> -->
-<!-- 			<snapshots /> -->
-<!-- 			<id>jsweet-plugins-snapshots</id> -->
-<!-- 			<name>plugins-snapshot</name> -->
-<!-- 			<url>http://repository.jsweet.org/artifactory/plugins-snapshot-local</url> -->
-<!-- 		</pluginRepository> -->
-<!-- 	</pluginRepositories> -->
 	<dependencies>
 		<dependency>
 			<groupId>com.sparkjava</groupId>
@@ -115,10 +99,77 @@
 			<version>1.1</version>
 			<scope>provided</scope>
 		</dependency>
-		
 	</dependencies>
-
+	<distributionManagement>
+		<repository>
+			<id>artifact-registry</id>
+			<url>artifactregistry://southamerica-east1-maven.pkg.dev/artefatos-dga/amp-maven</url>
+		</repository>
+	</distributionManagement>
+	<repositories>
+		<repository>
+			<id>artifact-registry</id>
+			<url>artifactregistry://southamerica-east1-maven.pkg.dev/artefatos-dga/amp-maven</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+  	</repositories>
 	<build>
+		<extensions>
+			<extension>
+				<groupId>com.google.cloud.artifactregistry</groupId>
+				<artifactId>artifactregistry-maven-wagon</artifactId>
+				<version>2.2.1</version>
+			</extension>
+		</extensions>
+		<!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
+		<pluginManagement>
+			<plugins>
+				<!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
+				<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>3.1.0</version>
+				</plugin>
+				<!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
+				<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.2</version>
+				</plugin>
+				<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				</plugin>
+				<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.1</version>
+				</plugin>
+				<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.0.2</version>
+				</plugin>
+				<plugin>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>2.5.2</version>
+				</plugin>
+				<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>3.1.1</version>
+				</plugin>
+				<!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
+				<plugin>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>3.7.1</version>
+				</plugin>
+				<plugin>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>3.0.0</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -153,26 +204,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-        <profiles>
-            <profile>
-		<id>deploy-nexus-local-release</id>
-	        <distributionManagement>
-		        <repository>
-			        <id>local-nexus-release</id>
-			        <url>http://localhost:8081/repository/maven-releases/</url>
-		        </repository>
-	        </distributionManagement>
-            </profile>
-            <profile>
-		<id>deploy-nexus3-cepel-br-release</id>
-	        <distributionManagement>
-		        <repository>
-			    <id>nexus3-cepel-br-release</id>
-			    <url>http://nexus3.cepel.br:8081/repository/maven-releases/</url>
-	    	        </repository>
-	        </distributionManagement>
-            </profile>
-    </profiles>
-
 </project>
