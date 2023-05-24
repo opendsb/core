@@ -3,13 +3,9 @@ package org.opendsb.messaging;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.websocket.DecodeException;
-
 import org.opendsb.json.AnnotationExclusion;
 import org.opendsb.json.TypedData;
 import org.opendsb.json.info.DefaultData;
-import org.opendsb.routing.remote.ws.GsonCoder;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -52,19 +48,5 @@ public class CallMessage extends BaseMessage {
 	@Override
 	public String toJSON() {
 		return coder.toJson(this);
-	}
-	
-	public static void main(String[] args) {
-		String msg = "{\"parameters\":[{},{}],\"replyTo\":\"reply-78dfb997-31f3-440e-9d1f-f88c4a87fb28/service/UserService/getUserByUserId\",\"messageId\":\"7a062be5-3d89-47f1-8a6b-16a0551013eb\",\"type\":\"CALL\",\"origin\":\"Router_3cf4d915-16d1-413d-bce6-3b707d0d843c\",\"destination\":\"service/UserService/getUserByUserId\",\"latestHop\":\"Router_3cf4d915-16d1-413d-bce6-3b707d0d843c\"}";
-		
-		GsonCoder coder = new GsonCoder();
-		
-		try {
-			Message callMessage = coder.decode(msg);
-			System.out.println("Hi!");
-		} catch (DecodeException e) {
-			e.printStackTrace();
-		}
-		
 	}
 }

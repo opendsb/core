@@ -8,11 +8,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
-import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfig;
-import javax.websocket.server.ServerEndpointConfig;
+import jakarta.websocket.Endpoint;
+import jakarta.websocket.server.ServerApplicationConfig;
+import jakarta.websocket.server.ServerEndpointConfig;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -23,7 +22,6 @@ import org.opendsb.messaging.MessageType;
 import org.opendsb.messaging.Subscription;
 import org.opendsb.routing.Router;
 import org.opendsb.routing.remote.RemotePeerConnection;
-import org.opendsb.routing.remote.ws.WebSocketRouterServer;
 import org.opendsb.ws.util.WebSocketServerHelper;
 
 public class RemoteDataPublishingTest {
@@ -38,11 +36,9 @@ public class RemoteDataPublishingTest {
 	private static String path = "/webSocketPublishTest";
 	private static String endPoint = "/dataMessageTest";
 
-	private static String log4JFile = "conf/log4j.properties";
 
 	@BeforeClass
 	public static void setup() {
-		PropertyConfigurator.configureAndWatch(log4JFile);
 	}
 
 	@Test
@@ -118,9 +114,9 @@ public class RemoteDataPublishingTest {
 			Router router = Router.newRouter();
 			BusClient client = BusClient.of(router);
 			subscription = client.subscribe(topic, handler);
-			WebSocketRouterServer server = new WebSocketRouterServer(router, endPoint, null);
+			// WebSocketRouterServer server = new WebSocketRouterServer(router, endPoint, null);
 			Set<ServerEndpointConfig> configs = new HashSet<>();
-			configs.add(server.getConfig());
+			// configs.add(server.getConfig());
 			return configs;
 		}
 

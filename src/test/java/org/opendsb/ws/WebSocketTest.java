@@ -11,7 +11,6 @@ import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.glassfish.tyrus.server.Server;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -22,11 +21,8 @@ import org.opendsb.ws.config.TestConfig;
 
 public class WebSocketTest {
 
-	private static String log4JFile = "conf/log4j.properties";
-
 	@BeforeClass
 	public static void setup() {
-		PropertyConfigurator.configureAndWatch(log4JFile);
 	}
 
 	@Test

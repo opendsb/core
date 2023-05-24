@@ -1,18 +1,16 @@
 package org.opendsb.routing.remote.ws;
 
-import javax.websocket.server.ServerEndpointConfig;
+import jakarta.websocket.server.ServerEndpointConfig;
 
 import org.opendsb.routing.Router;
 
 public class ServerConfigurator extends ServerEndpointConfig.Configurator {
 
 	private Router router;
-	private WebSocketRouterServer server;
 
-	public ServerConfigurator(Router router, WebSocketRouterServer server) {
+	public ServerConfigurator(Router router) {
 		super();
 		this.router = router;
-		this.server = server;
 	}
 
 	@Override
@@ -22,7 +20,7 @@ public class ServerConfigurator extends ServerEndpointConfig.Configurator {
 		T instance = null;
 
 		if (endpointClass.equals(WebSocketEndPontServer.class)) {
-			instance = (T) new WebSocketEndPontServer(router, server);
+			instance = (T) new WebSocketEndPontServer(router);
 		}
 
 		return instance;

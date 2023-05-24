@@ -1,7 +1,6 @@
 package org.opendsb.routing;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.jboss.logging.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opendsb.client.BusClient;
@@ -11,11 +10,8 @@ public class BasicRoutingTest {
 
 	private static Logger logger = Logger.getLogger(BasicRoutingTest.class);
 
-	private static String log4JFile = "conf/log4j.properties";
-
 	@BeforeClass
 	public static void setup() {
-		PropertyConfigurator.configureAndWatch(log4JFile);
 	}
 
 	@Test

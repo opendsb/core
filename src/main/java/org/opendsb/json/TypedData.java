@@ -2,7 +2,7 @@ package org.opendsb.json;
 
 import java.lang.reflect.Type;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.opendsb.json.info.DefaultData;
 
 import com.google.gson.JsonDeserializationContext;

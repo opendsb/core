@@ -4,8 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.jboss.logging.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opendsb.client.BusClient;
@@ -15,11 +14,9 @@ public class RSCExample {
 
 	private static Logger logger = Logger.getLogger(RSCExample.class);
 
-	private static String log4JFile = "conf/log4j.properties";
 
 	@BeforeClass
 	public static void setup() {
-		PropertyConfigurator.configureAndWatch(log4JFile);
 	}
 
 	@Test

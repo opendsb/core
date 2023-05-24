@@ -5,8 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import org.apache.log4j.Logger;
-import org.opendsb.messaging.CallMessage;
+import org.jboss.logging.Logger;
 import org.opendsb.messaging.ControlMessage;
 import org.opendsb.messaging.Message;
 import org.opendsb.messaging.Subscription;
@@ -42,20 +41,6 @@ public class RouteNode implements Comparable<RouteNode> {
 
 	public boolean accept(Message message) {
 		logger.trace("Accepting message for destination: '" + message.getDestination() + "' at node '" + topic + "'.");
-		
-		switch (message.getType()) {
-		case CALL: {
-			CallMessage msg = (CallMessage)message;
-			ControlMessage ack = new ControlMessage.Builder().createCallAckMessage(msg.getMessageId(), localRouter.getId() + "/" + topic, msg.getReplyTo()).build();
-			localRouter.routeMessage(ack, true);
-			break;
-		}
-
-		default: {
-			
-		}
-		}
-		
 		// Parallel processing hook point
 		subscribers.values().stream().sorted().forEach(h -> {
 			try{

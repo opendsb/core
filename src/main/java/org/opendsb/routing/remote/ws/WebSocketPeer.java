@@ -7,17 +7,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.websocket.ClientEndpointConfig;
-import javax.websocket.CloseReason;
-import javax.websocket.CloseReason.CloseCodes;
-import javax.websocket.ContainerProvider;
-import javax.websocket.DeploymentException;
-import javax.websocket.EncodeException;
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
+import jakarta.websocket.ClientEndpointConfig;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.CloseReason.CloseCodes;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.DeploymentException;
+import jakarta.websocket.EncodeException;
+import jakarta.websocket.MessageHandler;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.opendsb.messaging.Message;
 import org.opendsb.routing.Router;
 import org.opendsb.routing.remote.RemotePeer;
@@ -54,7 +54,7 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 	}
 
 	@Override
-	public RemotePeerConnection doConnect() throws IOException {
+	public RemotePeerConnection wireConnect() throws IOException {
 
 		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 
@@ -98,7 +98,7 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 	}
 
 	@Override
-	public void closeConnection(int code, String reason) {
+	public void wireCloseConnection(int code, String reason) {
 		try {
 			session.close(new CloseReason(CloseCodes.getCloseCode(code), reason));
 		} catch (IOException e) {
@@ -107,7 +107,7 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 	}
 	
 	@Override
-	public void doSendMessage(Message message) {
+	public void wireSendMessage(Message message) {
 		try {
 			synchronized(session) {
 				String encodedMessage = coder.encode(message);

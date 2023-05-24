@@ -2,7 +2,7 @@ package org.opendsb.pattern.navigator;
 
 import java.util.function.Predicate;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.opendsb.pattern.visitor.TreeVisitor;
 
 public class ConditionalVisitor<T> implements TreeVisitor<T> {

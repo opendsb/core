@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import org.opendsb.messaging.CallMessage;
+import org.opendsb.messaging.ControlMessage;
 import org.opendsb.messaging.Message;
+import org.opendsb.messaging.MessageType;
 import org.opendsb.routing.remote.RemotePeer;
 
 public class RoutingTask implements Runnable {
@@ -62,9 +65,19 @@ public class RoutingTask implements Runnable {
 	private void routeMessage(String destination) {
 		Map<String, RouteNode> routingTable = router.getRoutingTable();
 		if (routingTable.containsKey(destination) && routingTable.get(destination).subscriptionCount() > 0) {
+			sendAck(destination, message);
 			RouteNode node = routingTable.get(destination);
 			node.accept(message);
 		}
+	}
+	
+	private void sendAck(String topic, Message message) {
+		if (!MessageType.CALL.equals(message.getType())) {
+			return;
+		}
+		CallMessage msg = (CallMessage)message;
+		ControlMessage ack = new ControlMessage.Builder().createCallAckMessage(msg.getMessageId(), router.getId() + "/" + topic, msg.getReplyTo()).build();
+		router.routeMessage(ack, true);
 	}
 
 }

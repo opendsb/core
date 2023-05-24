@@ -3,7 +3,7 @@ package org.opendsb.routing;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.opendsb.client.BusClient;
 import org.opendsb.messaging.CallMessage;
 import org.opendsb.messaging.Message;

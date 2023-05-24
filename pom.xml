@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.opendsb</groupId>
 	
-	<version>2.1.1</version>
+	<version>3.0.0</version>
 	<artifactId>open-dsb</artifactId>
 	<packaging>jar</packaging>
 	
@@ -18,14 +18,13 @@
 		<developerConnection>scm:git:git@github.com:opendsb/core.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
+
 	<issueManagement>
 		<url>https://github.com/opendsb/core</url>
 	</issueManagement>
-	<ciManagement>
-		<system>Jenkins</system>
-		<url>https://opendsb.ci.cloudbees.com/job/core/</url>
-	</ciManagement>
+
 	<description>https://github.com/opendsb/core</description>
+
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -35,34 +34,12 @@
 	</licenses>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.java.version>1.8</project.java.version>
-		<project.javabin.version>1.8</project.javabin.version>
+		<project.java.version>17</project.java.version>
+		<project.javabin.version>17</project.javabin.version>
+		<version.org.jboss.logging>3.5.0.Final</version.org.jboss.logging>
+		<version.jakarta.websocket>2.1.0</version.jakarta.websocket>
 	</properties>
 	<dependencies>
-		<dependency>
-			<groupId>com.sparkjava</groupId>
-			<artifactId>spark-core</artifactId>
-			<version>2.2</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.sparkjava</groupId>
-			<artifactId>spark-template-freemarker</artifactId>
-			<version>2.0.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>9.4-1201-jdbc4</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.heroku.sdk</groupId>
-			<artifactId>heroku-jdbc</artifactId>
-			<version>0.1.1</version>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -82,11 +59,11 @@
 			<scope>test</scope>
 		</dependency>
 		
+		<!-- Actual Dependencies -->
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.16</version>
-			<scope>provided</scope>
+			<groupId>org.jboss.logging</groupId>
+			<artifactId>jboss-logging</artifactId>
+			<version>${version.org.jboss.logging}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -94,10 +71,19 @@
 			<version>2.5</version>
 		</dependency>
 		<dependency>
-			<groupId>javax.websocket</groupId>
-			<artifactId>javax.websocket-api</artifactId>
-			<version>1.1</version>
-			<scope>provided</scope>
+			<groupId>jakarta.websocket</groupId>
+			<artifactId>jakarta.websocket-api</artifactId>
+			<version>${version.jakarta.websocket}</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.websocket</groupId>
+			<artifactId>jakarta.websocket-client-api</artifactId>
+			<version>${version.jakarta.websocket}</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.enterprise</groupId>
+			<artifactId>jakarta.enterprise.cdi-api</artifactId>
+   			<version>4.0.1</version>
 		</dependency>
 	</dependencies>
 	<distributionManagement>
@@ -131,42 +117,42 @@
 			<plugins>
 				<!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
 				<plugin>
-				<artifactId>maven-clean-plugin</artifactId>
-				<version>3.1.0</version>
+					<artifactId>maven-clean-plugin</artifactId>
+					<version>3.1.0</version>
 				</plugin>
 				<!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
 				<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.0.2</version>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>3.0.2</version>
 				</plugin>
 				<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.8.0</version>
 				</plugin>
 				<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.22.1</version>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.22.1</version>
 				</plugin>
 				<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.0.2</version>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>3.0.2</version>
 				</plugin>
 				<plugin>
-				<artifactId>maven-install-plugin</artifactId>
-				<version>2.5.2</version>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>2.5.2</version>
 				</plugin>
 				<plugin>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<version>3.1.1</version>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>3.1.1</version>
 				</plugin>
 				<!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
 				<plugin>
-				<artifactId>maven-site-plugin</artifactId>
-				<version>3.7.1</version>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.7.1</version>
 				</plugin>
 				<plugin>
-				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>3.0.0</version>
+					<artifactId>maven-project-info-reports-plugin</artifactId>
+					<version>3.0.0</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>

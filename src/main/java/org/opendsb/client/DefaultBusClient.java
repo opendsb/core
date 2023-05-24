@@ -9,7 +9,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.opendsb.messaging.CallMessage;
 import org.opendsb.messaging.ControlMessage;
 import org.opendsb.messaging.DataMessage;

@@ -3,16 +3,15 @@ package org.opendsb.ws.config;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfig;
-import javax.websocket.server.ServerEndpointConfig;
+import jakarta.websocket.Endpoint;
+import jakarta.websocket.server.ServerApplicationConfig;
+import jakarta.websocket.server.ServerEndpointConfig;
 
 import org.opendsb.client.BusClient;
 import org.opendsb.messaging.DataMessage;
 import org.opendsb.messaging.MessageType;
 import org.opendsb.messaging.Subscription;
 import org.opendsb.routing.Router;
-import org.opendsb.routing.remote.ws.WebSocketRouterServer;
 
 public class TestConfig implements ServerApplicationConfig {
 
@@ -31,9 +30,9 @@ public class TestConfig implements ServerApplicationConfig {
 		});
 		
 		
-		WebSocketRouterServer server = new WebSocketRouterServer(router, "/mainRouter", null);
+		// WebSocketRouterServer server = new WebSocketRouterServer(router, "/mainRouter", null);
 		Set<ServerEndpointConfig> configs = new HashSet<>();
-		configs.add(server.getConfig());
+		// configs.add(server.getConfig());
 		return configs;
 	}
 

@@ -2,65 +2,84 @@ package org.opendsb.routing;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.opendsb.messaging.Message;
 import org.opendsb.messaging.Subscription;
 import org.opendsb.routing.remote.RemotePeer;
 import org.opendsb.routing.remote.RemotePeerConnection;
+import org.opendsb.util.SchedulingUtils;
 
 public class DefaultRouter implements Router {
 
-	
 	private static final Logger logger = Logger.getLogger(DefaultRouter.class);
 
 	
 	private String routerID = "Router_" + UUID.randomUUID();
 	
-	private ExecutorService executorService = Executors.newFixedThreadPool(5);
+	private static long listenerCounter = 0;
+
+	private ExecutorService localPoolService;
+
+	private ExecutorService remotePoolService;
+
+	private ScheduledExecutorService cleanUpService;
 
 	// Map<Address, Listeners>
 	protected Map<String, RouteNode> routingTable = new ConcurrentHashMap<>();
 	
+
 	// Map<ConnectionId, RemotePeer>
 	protected Map<String, RemotePeer> peers = new ConcurrentHashMap<>();
 
 	// Map<RemoteAdress, ConnectionId>
 	protected Map<String, String> remoteAddressIndex = new ConcurrentHashMap<>();
-	
-	// Map<PeerId, ConnectionId>
-	protected Map<String, String> peerIdIndex = new ConcurrentHashMap<>();
-	
-	protected Map<Class<?>, Object> typeAdapterIdx = new ConcurrentHashMap<>();
+
+	// Map<ListenerId, Listener>
+	private Map<Long, Consumer<RemotePeer>> peerListeners = new ConcurrentHashMap<>();
 	
 	
 	public DefaultRouter() {
-		super();
-		executorService = Executors.newFixedThreadPool(5, (r) -> {
-			Thread thread = Executors.defaultThreadFactory().newThread(r);
-			thread.setName("OpenDSB-" + routerID + "[" + thread.getName() + "]");
-			thread.setDaemon(true);
-			return thread;
-		});
+		this(5, 5);
 	}
-	
+
 	public DefaultRouter(int numberOFThreads) {
-		super();
-		executorService = Executors.newFixedThreadPool(numberOFThreads, (r) -> {
-			Thread thread = Executors.defaultThreadFactory().newThread(r);
-			thread.setName("OpenDSB-" + routerID + "[" + thread.getName() + "]");
-			thread.setDaemon(true);
-			return thread;
-		});
+		this(numberOFThreads/2, numberOFThreads/2);
 	}
 	
+	public DefaultRouter(int numberOFLocalThreads, int numberOFRemoteThreads) {
+		super();
+		localPoolService = SchedulingUtils.buildPool(numberOFLocalThreads, "localThread-" + routerID);
+		remotePoolService = SchedulingUtils.buildPool(numberOFRemoteThreads, "remoteThread-" + routerID);
+		cleanUpService = SchedulingUtils.buildScheduledPool(1, "cleanUpThread-" + routerID);
+		setupCleanUpTask();
+	}
+
+	private void setupCleanUpTask() {
+
+		Runnable cleanupTask = () -> {
+			Iterator<Entry<String, RouteNode>> it = routingTable.entrySet().iterator();
+			while (it.hasNext()) {
+				RouteNode node = it.next().getValue();
+				if (node.subscriptionCount() == 0) {
+					it.remove();
+				}
+			}
+		};
+
+		cleanUpService.scheduleAtFixedRate(cleanupTask, 0, 60, TimeUnit.SECONDS);
+	}
+
 	@Override
 	public String getId() {
 		return routerID;
@@ -85,8 +104,12 @@ public class DefaultRouter implements Router {
 		if (peers.containsKey(peer.getConnectionId())) {
 			throw new IllegalArgumentException(
 					"Unable to register peer with a duplicate id '" + peer.getConnectionId() + "'");
-		} else {
-			peers.put(peer.getConnectionId(), peer);
+		}
+		peers.put(peer.getConnectionId(), peer);
+		synchronized (peerListeners) {
+			for (Consumer<RemotePeer> listener : peerListeners.values()) {
+				listener.accept(peer);
+			}
 		}
 	}
 	
@@ -103,8 +126,17 @@ public class DefaultRouter implements Router {
 	@Override
 	public void removePeer(RemotePeer peer) {
 		peers.remove(peer.getConnectionId());
-		peerIdIndex.remove(peer.getPeerId());
 		remoteAddressIndex.remove(peer.getAddress());
+	}
+
+	public void routeMessageToPeer(Message message, RemotePeer peer) {
+		remotePoolService.submit(() -> {
+			try {
+				peer.sendMessage(message);
+			} catch (Exception e) {
+				logger.error("Failed to send message to remote peer.", e);
+			}
+		});
 	}
 
 	@Override
@@ -115,7 +147,7 @@ public class DefaultRouter implements Router {
 			// Set peers instead.
 			task.setPeers(peers.values());
 		}
-		executorService.submit(task);
+		localPoolService.submit(task);
 	}
 
 	@Override
@@ -149,5 +181,21 @@ public class DefaultRouter implements Router {
 			throw new IOException("Unable to establish connection with server at '" + address + "'", e);
 		}
 		
+	}
+
+	@Override
+	public long addConnectionListener(Consumer<RemotePeer> listener) {
+		synchronized (peerListeners) {
+			long listenerCode = listenerCounter++;
+			peerListeners.put(listenerCode, listener);
+			return listenerCode;
+		}
+	}
+
+	@Override
+	public void removeConnectionListener(long listenerCode) {
+		synchronized (peerListeners) {
+			peerListeners.remove(listenerCode);
+		}
 	}
 }

@@ -28,6 +28,12 @@ public interface Router {
 
 	public void routeMessage(Message message, boolean remote);
 
+	public void routeMessageToPeer(Message message, RemotePeer peer);
+
+	public void removeConnectionListener(long listenerCode);
+
+	public long addConnectionListener(Consumer<RemotePeer> listener);
+
 	public Subscription subscribe(String topic, Consumer<Message> handler, HandlerPriority priority);
 	
 	public RemotePeerConnection connectToRemoteRouter(String address, Map<String, Object> opt) throws IOException;

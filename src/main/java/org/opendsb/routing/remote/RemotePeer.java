@@ -10,7 +10,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
+import org.jboss.logging.Logger;
 import org.opendsb.messaging.CallMessage;
 import org.opendsb.messaging.ControlMessage;
 import org.opendsb.messaging.Message;
@@ -98,27 +98,29 @@ public abstract class RemotePeer {
 
 	public RemotePeerConnection connect() throws IOException {
 		
-		RemotePeerConnection remotePeerConnection = doConnect();
+		RemotePeerConnection remotePeerConnection = wireConnect();
 		
 		pendingBusConnectionId = "ConnectionRequest_" + UUID.randomUUID();
 		
-		sendMessage(new ControlMessage.Builder()
-				.createConnectionRequestMessage(pendingBusConnectionId, router.getId())
-				.addClientId(router.getId())
-				.addRoutingTableCount(router.getFullSubscriptionCount())
-				.build());
+		Message connectionRequest = new ControlMessage.Builder()
+			.createConnectionRequestMessage(pendingBusConnectionId, router.getId())
+			.addClientId(router.getId())
+			.addRoutingTableCount(router.getFullSubscriptionCount())
+			.build();
+
+		router.routeMessageToPeer(connectionRequest, this);
 		
 		return remotePeerConnection;
 	};
 	
-	public abstract RemotePeerConnection doConnect() throws IOException;
+	protected abstract RemotePeerConnection wireConnect() throws IOException;
 
-	public abstract void doSendMessage(Message message);
+	protected abstract void wireSendMessage(Message message);
 
-	public abstract void closeConnection(int code, String reason);
+	protected abstract void wireCloseConnection(int code, String reason);
 
 	public void disconnect() {
-		closeConnection(1001, "Client is going away");
+		wireCloseConnection(1001, "Client is disconnecting");
 	}
 	
 	public void connectionOpenned() {
@@ -152,32 +154,42 @@ public abstract class RemotePeer {
 	}
 	
 	public void sendMessage(Message message) {
+		
+		boolean interested;
+
+		String destination = message.getDestination();
+
+		interested = isRemotePeerInterested(destination);
+
+		if (!interested) {
+			logger.debug("No listeners registered for '" + destination + "' in remote peer. Skipping!");
+			return;
+		}
+
+		logger.debug("Sending remote message to '" + destination + "'");
+		wireSendMessage(message);
+	}
+
+	private boolean isRemotePeerInterested(String destination) {
+		boolean interested = false;
+
 		// Lookup indexes instead
-		String[] pieces = message.getDestination().split("/");
-		String destination = null;
-		
-		String concat = "";
-		
-		boolean send = false;
-		
-		logger.debug("Sending remote message to '" + message.getDestination() + "'");
-		
+		String[] pieces = destination.split("/");
+		String partialDestination = "";
+
 		// Generate the path like a/b/c in a, a/b, a/b/c
 		for (int i = 0; i < pieces.length; i++) {
-			destination = concat + pieces[i];
+			partialDestination = partialDestination + pieces[i];
 			synchronized (remoteRoutingTableCounter) {
 				if (remoteRoutingTableCounter.containsKey(destination) && remoteRoutingTableCounter.get(destination) > 0) {
-					send = true;
+					interested = true;
 					break;
 				}
 			}
-			concat = destination + "/";
+			partialDestination = partialDestination + "/";
 		}
-		if (send) {
-			doSendMessage(message);
-		} else {
-			logger.debug("No listeners registered for '" + destination + "'. Skipping!");
-		}
+
+		return interested;
 	}
 
 	protected void process(ControlMessage message) {
@@ -224,11 +236,12 @@ public abstract class RemotePeer {
 				Map<String, Integer> remoteRoutingTableCounter = gson.fromJson(message.getControlInfo(ControlTokens.ROUTING_TABLE_COUNT), routeTableCount);
 				peerId = clientId;
 				setRemoteRoutingTableCounter(remoteRoutingTableCounter);
-				sendMessage(new ControlMessage.Builder()
-						.createConnectionReplyMessage(transactionId, router.getId())
-						.addRoutingTableCount(router.getFullSubscriptionCount())
-						.addServerId(router.getId())
-						.build());
+				Message connectionReply = new ControlMessage.Builder()
+					.createConnectionReplyMessage(transactionId, router.getId())
+					.addRoutingTableCount(router.getFullSubscriptionCount())
+					.addServerId(router.getId())
+					.build();
+				router.routeMessageToPeer(connectionReply, this);
 				busConnected = true;
 			} else {
 				logger.error("Cannot complete connection request '" + connectionId + "' pending request not found.");
@@ -254,7 +267,7 @@ public abstract class RemotePeer {
 				this.peerId = serverId;
 				setRemoteRoutingTableCounter(remoteRoutingTableCounter);
 				busConnected = true;
-				notifyConnection();
+				notifyConnectionSuccess();
 			} else {
 				logger.warn("Received a connection reply from unknown source. Ignoring.");
 			}
@@ -291,7 +304,7 @@ public abstract class RemotePeer {
 		}
 	}
 	
-	protected void notifyConnection() {
+	protected void notifyConnectionSuccess() {
 		synchronized (connectedFutures) {
 			Iterator<CompletableFuture<Void>> it = connectedFutures.iterator();
 			

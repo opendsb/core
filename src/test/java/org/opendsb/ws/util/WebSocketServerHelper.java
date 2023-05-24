@@ -3,7 +3,7 @@ package org.opendsb.ws.util;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-import javax.websocket.server.ServerApplicationConfig;
+import jakarta.websocket.server.ServerApplicationConfig;
 
 import org.glassfish.tyrus.server.Server;
 
