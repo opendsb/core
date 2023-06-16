@@ -25,6 +25,7 @@ pip install opendsb
 hatch clean ; hatch build
 hatch config show | grep 'data ='
 hatch config show | grep 'data =' | awk '{ print $3  $4}'
+tree -L 4 $HOME/.local/share/hatch/env/virtual/opendsb
 ``` 
 
 ## Install
