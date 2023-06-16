@@ -94,6 +94,7 @@ class DefaultRouter(Router):
         logger.debug(f'Routing "{message}" to "{destination}"')
         if isinstance(message, CallMessage):
             logger.debug(f'Handling special case "CallMessage". Routing "ControlMessage" to ACK.')
+            ack = None
             try:
                 ack = ControlMessage(self.id, message.reply_to, ControlMessageType.CALL_ACK, {'transactionId': message.id})
                 self.route_message(ack)

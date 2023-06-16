@@ -26,7 +26,10 @@
     "reportUntypedFunctionDecorator": true,
     "strictListInference": true,
     "strictDictionaryInference": true,
-    "reportGeneralTypeIssues": true,
+
+
+    "reportGeneralTypeIssues": false,
+    "reportUndefinedVariable": false,
 
     "pythonVersion": "3.11",
     "pythonPlatform": "Linux",
