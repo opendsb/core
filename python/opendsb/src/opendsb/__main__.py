@@ -10,7 +10,6 @@ from .routing.defaultrouter import DefaultRouter
 from .utils.dictvalidator import DictValidator
 from .messaging.datamessage import DefaultData
 
-from .pi.PIConnection import PIConnection
 
 def initialize_logger():
     logger = logging.getLogger(__name__)
@@ -144,9 +143,9 @@ def remote_test_case_continuous():
 
 
 def main():
-    #local_test_case()
+    local_test_case()
     #remote_test_case()
-    remote_test_case_continuous()
+    #remote_test_case_continuous()
 
 
 if __name__ == '__main__':
