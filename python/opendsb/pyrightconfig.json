@@ -1,0 +1,44 @@
+{
+    "include": [
+      "src"
+    ],
+
+    "exclude": [
+      "**/node_modules",
+      "**/__pycache__",
+      "src/experimental",
+      "src/typestubs"
+    ],
+
+    "ignore": [
+      "src/oldstuff"
+    ],
+
+    "defineConstant": {
+      "DEBUG": true
+    },
+
+    "stubPath": "src/stubs",
+
+    "reportMissingImports": "warning",
+    "reportMissingTypeStubs": "warning",
+    "reportUnknownParameterType": false,
+    "reportUntypedFunctionDecorator": true,
+    "strictListInference": true,
+    "strictDictionaryInference": true,
+    "reportGeneralTypeIssues": true,
+
+    "pythonVersion": "3.11",
+    "pythonPlatform": "Linux",
+
+    "executionEnvironments": [
+      {
+        "root": "src",
+        "pythonVersion": "3.11",
+        "pythonPlatform": "Linux"
+      },
+      {
+        "root": "tests"
+      }
+    ]
+}
