@@ -40,7 +40,8 @@ def local_test_case():
         client.publish_reply(message.reply_to, 'Results Received!')
 
     logger.info('Subscribing client to topic...')
-    subscription = client.subscribe('A/B', lambda m: custom_reply_handler(m)) # lambda message: print(message.data)
+    #subscription = client.subscribe('A/B', lambda m: custom_reply_handler(m)) # lambda message: print(message.data)
+    subscription = client.subscribe('A/B', custom_reply_handler) # lambda message: print(message.data)
 
     logger.info('Publishing data to subscribed topics...')
     client.publish_data('A/B', 'Hello World!')
@@ -141,11 +142,59 @@ def remote_test_case_continuous():
         time.sleep(10)
 
 
+def remote_test_case_callandwait():
+    logger = logging.getLogger(__name__)
+
+    logger.info('Starting OpenDSB...')
+
+    logger.info('Creating router...')
+    router = DefaultRouter()
+
+    logger.info('Creating client...')
+    client = DefaultBusClient(router)
+
+    address = 'ws://localhost:8080/open-dsb/bus'
+    logger.info(f'Connecting to remote peer at "{address}"...')
+    router.connect_to_remote_router(address)
+
+    time.sleep(2)
+
+    schema = ['name', 'description', 'qualityIndex']
+    data_dict = client.call_and_wait('c/getSample', [], schema, 15)
+    print(data_dict)
+
+    #TODO: criar um metodo shutdown
+
+
+def remote_test_case_connect():
+    '''Exemplo de criacao de cliente OpenDSB no Sapiens'''
+
+    logger = logging.getLogger(__name__)
+
+    logger.info('Creating router...')
+    router = DefaultRouter()
+    
+    address = 'ws://localhost:8080/open-dsb/bus'
+    client = router.connect_to_remote(address)
+
+    time.sleep(2)
+
+    schema = ['name', 'description', 'qualityIndex']
+    data_dict = client.call_and_wait('c/getSample', [], schema, 15)
+    print(data_dict)
+
+    #TODO: criar um metodo shutdown
+
+
+
+
 
 def main():
-    local_test_case()
+    #local_test_case()
     #remote_test_case()
     #remote_test_case_continuous()
+    #remote_test_case_callandwait()
+    remote_test_case_connect()
 
 
 if __name__ == '__main__':

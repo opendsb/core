@@ -13,6 +13,7 @@ from ..messaging.datamessage import DataMessage
 from ..messaging.message import Message
 from ..messaging.replymessage import ReplyMessage
 from ..routing.router import Router
+from ..utils.dictvalidator import DictValidator
 
 
 logger = logging.getLogger('__main__')
@@ -66,11 +67,29 @@ class DefaultBusClient(BusClient):
         logger.debug(f'Publishing data message: "{data_message}"')
         self.router.route_message(data_message, True)
 
-    def publish_reply(self, topic: str, reply: str) -> None:
+    def publish_reply(self, topic: str, reply: str | dict | list | int | float | bool | None) -> None:
         '''Publish data to a topic'''
         reply_message = ReplyMessage(destination=topic, origin=self.router.id, reply=reply)
         logger.debug(f'Publishing reply message: "{reply_message}"')
         self.router.route_message(reply_message, True)
+
+    def call_and_wait(self, topic: str, parameters: list[str], schema: list[str], timeout: float) -> dict:
+        
+        response = self.call(topic, parameters)
+
+        logger.info('Waiting response for Client Call...')
+
+        try:
+            call_result = response.result(timeout)
+            data_dict = call_result.data['data']
+            DictValidator.validate(data_dict, schema, call_result.data['dataType'])
+            logger.debug(f'Client Call response: "{data_dict}"')
+        except TimeoutError as e:
+            logger.warning(f'TimeoutError: No Client Call response received. {e}')
+        except Exception as e:
+            logger.warning(f'Exception: {e}')
+
+        return data_dict
 
     def call(self, topic: str, parameters: list[str]) -> Future:
         '''Call a method'''
