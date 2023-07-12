@@ -3,6 +3,8 @@ import logging
 import time
 from typing import Callable
 
+from ..client.busclient import BusClient
+from ..client.defaultbusclient import DefaultBusClient
 from ..client.subscription import Subscription
 from ..messaging.message import Message
 from ..messaging.callmessage import CallMessage
@@ -129,7 +131,17 @@ class DefaultRouter(Router):
 
     def get_remote_peer(self, remote_peer_id: str) -> RemotePeer:
         return self.remote_peers[remote_peer_id]
-    
+
+    def connect_to_remote(self, address: str) -> BusClient:
+        logger.info('Starting OpenDSB...')
+
+        logger.info('Creating client...')
+        client = DefaultBusClient(self)
+
+        logger.info(f'Connecting to remote peer at "{address}"...')
+        self.connect_to_remote_router(address)
+        return client
+        
     def connect_to_remote_router(self, address: str) -> str:
         try:
             remote_peer = WebSocketPeer(self, address)
@@ -137,6 +149,7 @@ class DefaultRouter(Router):
         except Exception as e:
             logger.warning(f'Failure establishing connection to address "{address}"', e)
             #raise IOError(f'Unable to establish connection with server at "{address}"', e)
+            return ''
 
     def route_message_to_peer(self, message: Message, peer: RemotePeer) -> None:
         self.executor.submit(self._route_message_to_peer_task, message, peer)
