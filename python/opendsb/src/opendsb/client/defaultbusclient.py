@@ -86,8 +86,10 @@ class DefaultBusClient(BusClient):
             logger.debug(f'Client Call response: "{data_dict}"')
         except TimeoutError as e:
             logger.warning(f'TimeoutError: No Client Call response received. {e}')
+            data_dict = {}
         except Exception as e:
             logger.warning(f'Exception: {e}')
+            data_dict = {}
 
         return data_dict
 
