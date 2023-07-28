@@ -5,7 +5,7 @@ from typing import Callable
 from ..client.subscription import Subscription
 from ..messaging.message import Message
 
-logger = logging.getLogger('__main__')
+logger = logging.getLogger('opendsb')
 
 
 class RouteNode:
@@ -23,12 +23,12 @@ class RouteNode:
 
     def accept(self, message: Message) -> bool:
         for subscription in self.subscribers.values():
-            logger.debug(f'Passing message "{message}" in node "{self.topic}" to handler')# "{subscription.handler}"')
+            logger.debug(f'Passing message "{message}" in node "{self.topic}" to handler'[:500])# "{subscription.handler}"')
             try:
                 #subscription.handler.accept(message)
                 subscription.handler(message)
             except Exception as exc:
-                logger.debug(f'Exception in RouteNode "{self.topic}": Unable to process message "{message}".', exc)
+                logger.debug(f'Exception in RouteNode "{self.topic}": Unable to process message "{message}".'[:500], exc)
         return True
 
     def subscribe(self, subscription_id: str, handler: Callable) -> Subscription:

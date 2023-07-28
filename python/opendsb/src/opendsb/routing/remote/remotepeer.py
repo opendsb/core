@@ -14,7 +14,7 @@ from ...messaging.callmessage import CallMessage
 from ...messaging.message import Message
 from ...messaging.controlmessage import ControlMessage, ControlMessageType, ControlTokens
 
-logger = logging.getLogger('__main__')
+logger = logging.getLogger('opendsb')
 
 
 class Router(Protocol):
@@ -41,7 +41,6 @@ class Router(Protocol):
 
     def remove_peer(self, remote_peer) -> None:
         ...
-    
 
 
 class RemotePeer(ABC):
@@ -194,23 +193,3 @@ class RemotePeer(ABC):
             case 'REPLY':
                 message = ReplyMessage.from_json(json_message)
         return message
-
-
-
-
-
-
-
-#private ConnectionRequestMessageBuilder(String transactionId, String origin) {
-#    super(transactionId, origin);
-#    controlMessageType = ControlMessageType.CONNECTION_REQUEST;
-#}
-
-#add_client_id(clientId=self.router.id)
-#    addToken(ControlTokens.CLIENT_ID, clientId);
-#       controlInfo.put(token, value);
-
-
-# full_subscription_count
-#getFullSubscriptionCount: retorna um dicionario de {topicos : numero de subscribers} contando a partir da routing_table
-# O objetivo eh criar um dicionario que soma todos os subscribers relacionados a cada topico da routing_table

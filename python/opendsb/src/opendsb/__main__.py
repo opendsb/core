@@ -12,7 +12,7 @@ from .messaging.datamessage import DefaultData
 
 
 def initialize_logger():
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger('opendsb')
     logger.setLevel(logging.DEBUG)
     #logger_handler = RotatingFileHandler('opendsb.log', maxBytes=1_000_000, backupCount=0)
     logger_handler = logging.FileHandler('opendsb.log', mode='w')
@@ -24,6 +24,7 @@ def initialize_logger():
 
 
 def local_test_case():
+    '''DEPRECATED'''
     
     logger.info('Starting OpenDSB...')
 
@@ -73,6 +74,7 @@ def local_test_case():
 
 
 def remote_test_case():
+    '''DEPRECATED'''
     logger = logging.getLogger(__name__)
 
     logger.info('Starting OpenDSB...')
@@ -120,6 +122,7 @@ def remote_test_case():
 
 
 def remote_test_case_continuous():
+    '''DEPRECATED'''
     logger = logging.getLogger(__name__)
 
     logger.info('Starting OpenDSB...')
@@ -143,6 +146,8 @@ def remote_test_case_continuous():
 
 
 def remote_test_case_callandwait():
+    '''DEPRECATED'''
+
     logger = logging.getLogger(__name__)
 
     logger.info('Starting OpenDSB...')
@@ -159,8 +164,8 @@ def remote_test_case_callandwait():
 
     time.sleep(2)
 
-    schema = ['name', 'description', 'qualityIndex']
-    data_dict = client.call_and_wait('c/getSample', [], schema, 15)
+    #schema = ['name', 'description', 'qualityIndex']
+    data_dict = client.call_and_wait('c/getSample', [], 15)
     print(data_dict)
 
     #TODO: criar um metodo shutdown
@@ -179,8 +184,8 @@ def remote_test_case_connect():
 
     time.sleep(2)
 
-    schema = ['name', 'description', 'qualityIndex']
-    data_dict = client.call_and_wait('c/getSample', [], schema, 15)
+    #schema = ['name', 'description', 'qualityIndex']
+    data_dict = client.call_and_wait('c/getSample', [], 15)
     print(data_dict)
 
     #TODO: criar um metodo shutdown
@@ -200,20 +205,3 @@ def main():
 if __name__ == '__main__':
     logger = initialize_logger()
     main()
-
-
-
-
-# TODO: Implementar uma forma de aguardar o servidor quando cair e se conectar automaticamente
-# TODO: Implementar uma forma de me reconectar automaticamente 
-# TODO: pesquisar sobre "backoff" do tipo exponencial (tipicamente na base 2: 10, 20, 40.... t_max)
-
-# TODO: aguardar a Future do connect retornar para continuar
-# Este Future pode completar normalmente e vc segue
-# Se der algum erro de conexão tento novamente (backoff)
-# Se a conexão for interrompida tenho que reconectar tbm (backoff)
-
-# Tasklist
-# 1 - usar o future da conexao para remover o timesleep (DONE)
-# 2 - publicar a cada 10s usando uma threadpool, substituindo hello world por um rand
-# 3 - tenho que ser capaz de conseguir me reconectar automaticamente quando o servidor docker cair
