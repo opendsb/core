@@ -14,7 +14,7 @@ from .remote.ws.websocketpeer import WebSocketPeer
 from .routenode import RouteNode
 from .router import Router
 
-logger = logging.getLogger('__main__')
+logger = logging.getLogger('opendsb')
 
 
 class DefaultRouter(Router):
@@ -62,7 +62,7 @@ class DefaultRouter(Router):
 
     def route_message(self, message: Message, remote: bool = False) -> None:
         """Route message to destination using an asynchronous task"""      
-        logger.debug(f'Routing "{message}"')
+        logger.debug(f'Routing "{message}"'[:500])
         self.executor.submit(self._routing_task, message, remote)
 
     def _routing_task(self, message: Message, remote: bool) -> None:
@@ -83,7 +83,7 @@ class DefaultRouter(Router):
 
     def route_message_to_remote_peers(self, message: Message) -> None:
         """Route message to remote peers using an asynchronous task"""
-        logger.debug(f'Routing "{message}" to remote peers')
+        logger.debug(f'Routing "{message}" to remote peers'[:500])
         previous_hop = message.latest_hop
         message.latest_hop = self.id
         # Send the message to all peers except the one that send the message. (Flood strategy)
@@ -93,7 +93,7 @@ class DefaultRouter(Router):
             peer.send_message(message)
 
     def _execute_routing(self, destination: str, message: Message) -> None:
-        logger.debug(f'Routing "{message}" to "{destination}"')
+        logger.debug(f'Routing "{message}" to "{destination}"'[:500])
         if isinstance(message, CallMessage):
             logger.debug(f'Handling special case "CallMessage". Routing "ControlMessage" to ACK.')
             ack = None

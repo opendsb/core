@@ -3,9 +3,9 @@
 from concurrent.futures import Future, ThreadPoolExecutor
 import logging
 from threading import Timer
-from typing import Callable
+from typing import Callable, Union
 
-from .busclient import BusClient
+from .busclient import BusClient, Result
 from .subscription import Subscription
 from ..messaging.callmessage import CallMessage
 from ..messaging.controlmessage import ControlMessage, ControlMessageType
@@ -13,10 +13,11 @@ from ..messaging.datamessage import DataMessage
 from ..messaging.message import Message
 from ..messaging.replymessage import ReplyMessage
 from ..routing.router import Router
-from ..utils.dictvalidator import DictValidator
+#from ..utils.dictvalidator import DictValidator
 
+Serializable = Union[str, dict, list, int, float, bool, None]
 
-logger = logging.getLogger('__main__')
+logger = logging.getLogger('opendsb')
 
 
 def reply_handler(response: Future, topic:str, subscription_id: str, router: Router) -> Callable:
@@ -61,19 +62,19 @@ class DefaultBusClient(BusClient):
         logger.debug(f'Unsubscribing "{subscription}"')
         self.router.unsubscribe(subscription.topic, subscription.id)
 
-    def publish_data(self, topic: str, data: str) -> None:
+    def publish_data(self, topic: str, data: Serializable) -> None:
         '''Publish data to a topic'''
         data_message = DataMessage(destination=topic, origin=self.router.id, data=data)
         logger.debug(f'Publishing data message: "{data_message}"')
         self.router.route_message(data_message, True)
 
-    def publish_reply(self, topic: str, reply: str | dict | list | int | float | bool | None) -> None:
+    def publish_reply(self, topic: str, reply: Serializable) -> None:
         '''Publish data to a topic'''
         reply_message = ReplyMessage(destination=topic, origin=self.router.id, reply=reply)
         logger.debug(f'Publishing reply message: "{reply_message}"')
         self.router.route_message(reply_message, True)
 
-    def call_and_wait(self, topic: str, parameters: list[str], schema: list[str], timeout: float) -> dict:
+    def call_and_wait(self, topic: str, parameters: list[str], timeout: float) -> Result:
         
         response = self.call(topic, parameters)
 
@@ -81,17 +82,20 @@ class DefaultBusClient(BusClient):
 
         try:
             call_result = response.result(timeout)
-            data_dict = call_result.data['data']
-            DictValidator.validate(data_dict, schema, call_result.data['dataType'])
-            logger.debug(f'Client Call response: "{data_dict}"')
+            result = Result(True, call_result)
+            #data_dict = call_result.data['data']
+            #DictValidator.validate(data_dict, schema, call_result.data['concreteType'])
+            logger.debug(f'Client Call response: "{call_result}"'[:500])
         except TimeoutError as e:
-            logger.warning(f'TimeoutError: No Client Call response received. {e}')
-            data_dict = {}
+            msg = f'TimeoutError: No Client Call response received. {e}'
+            logger.warning(msg)
+            result = Result(False, {}, msg)
         except Exception as e:
-            logger.warning(f'Exception: {e}')
-            data_dict = {}
+            msg = f'Exception: {e}'
+            logger.warning(msg, exc_info=True)
+            result = Result(False, {}, msg)
 
-        return data_dict
+        return result
 
     def call(self, topic: str, parameters: list[str]) -> Future:
         '''Call a method'''
@@ -102,13 +106,13 @@ class DefaultBusClient(BusClient):
         reply_subscription_id = f'reply-{self.router.generate_subid()}'
         ack_subscription_id = f'ack-{self.router.generate_subid()}'
 
-        _ = self.router.subscribe(reply_to, reply_subscription_id, reply_handler(response, reply_to, reply_subscription_id, self.router))
+        self.router.subscribe(reply_to, reply_subscription_id, reply_handler(response, reply_to, reply_subscription_id, self.router))
 
         # Impede uma mensagem de call para um topico no qual ninguem esta escutando
         timeout_task = Timer(self.timeout, self._timeout_task, [response, reply_to, reply_subscription_id, ack_subscription_id])
         timeout_task.start()
 
-        _ = self.router.subscribe(reply_to, ack_subscription_id, ack_handler(timeout_task, reply_to, ack_subscription_id, self.router))
+        self.router.subscribe(reply_to, ack_subscription_id, ack_handler(timeout_task, reply_to, ack_subscription_id, self.router))
 
         logger.debug(f'Creating CallMessage...')
         call_msg = CallMessage(destination=topic, origin=self.router.id, parameters=parameters, reply_to=reply_to)

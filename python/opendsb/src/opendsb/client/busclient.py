@@ -2,10 +2,16 @@
 
 from abc import ABC, abstractmethod
 from concurrent.futures import Future
-from typing import Callable
+from typing import Callable, Any
 
 from .subscription import Subscription
 
+
+class Result:
+    def __init__(self, success: bool, value: Any, reason: str='') -> None:
+        self.success = success
+        self.value = value
+        self.reason = reason
 
 
 class BusClient(ABC):
@@ -30,4 +36,8 @@ class BusClient(ABC):
     @abstractmethod
     def call(self, topic: str, parameters: list[str]) -> Future:
         '''Call a method'''
+
+    @abstractmethod
+    def call_and_wait(self, topic: str, parameters: list[str], timeout: float) -> Result:
+        '''Call a method and wait for the response'''
 

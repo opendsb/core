@@ -1,19 +1,22 @@
 
 from abc import ABC
 import json
+from typing import Any
+
 from .basemessage import BaseMessage
 from .message import MessageType
 
 
 class TypedData(ABC):
-    def __init__(self, data, concreteType: str) -> None:
+    def __init__(self, data: Any, concreteType: str) -> None:
         self.data = data
         self.concreteType = concreteType
 
+
 class DefaultData(TypedData):
-    def __init__(self, data: dict) -> None:
-        super().__init__(data['payLoad'], 'org.opendsb.json.info.DefaultData')
-        self.dataType = data['dataType']
+    def __init__(self, data: Any, dataType: str) -> None:
+        super().__init__(data, 'org.opendsb.json.info.DefaultData')
+        self.dataType = dataType
 
     def to_dict(self):
         return {
@@ -22,11 +25,28 @@ class DefaultData(TypedData):
             'concreteType': self.concreteType
         }
 
+
 class TypedCollection(TypedData):
-    def __init__(self, data: dict) -> None:
-        super().__init__(data['payLoad'], 'org.opendsb.json.info.TypedCollection')
-        self.collectionRawType = data['collectionRawType'] # tipo da colecao em si
-        self.collectionGenericType = data['dataType'] # tipo do conteudo da colecao
+    def __init__(self, data: Any, collectionGenericType: str, collectionRawType: str) -> None:
+        '''TypedCollection
+
+        Args
+        -----
+        data: collection content
+        collectionGenericType: collection content type
+        collectionRawType: type of the collection itself
+        '''
+        super().__init__(data, 'org.opendsb.json.info.TypedCollection')
+        self.collectionRawType = collectionRawType # tipo da colecao em si
+        self.collectionGenericType = collectionGenericType # tipo do conteudo da colecao
+    
+    def to_dict(self):
+        return {
+            'data': self.data,
+            'concreteType': self.concreteType,
+            'collectionRawType': self.collectionRawType,
+            'collectionGenericType': self.collectionGenericType
+        }
 
 
 class DataMessage(BaseMessage):

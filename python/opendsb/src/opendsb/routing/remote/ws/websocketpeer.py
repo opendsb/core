@@ -10,7 +10,7 @@ from ....messaging.message import Message
 from ..remotepeer import RemotePeer, Router
 
 
-logger = logging.getLogger('__main__')
+logger = logging.getLogger('opendsb')
 
 
 class WebSocketPeer(RemotePeer):
@@ -42,7 +42,7 @@ class WebSocketPeer(RemotePeer):
         self.connection_opened()
 
     def on_message(self, wsapp, json_message: str):
-        logger.debug(f"Websocket Message received: '{json_message}'")
+        logger.debug(f"Websocket Message received: '{json_message}'"[:500])
         message = self.build_message(json_message)
         self.message_received(message)
 
