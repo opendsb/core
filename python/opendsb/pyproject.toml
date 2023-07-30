@@ -7,7 +7,7 @@ name = "opendsb"
 dynamic = ["version"]
 description = ''
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 license = "MIT"
 keywords = []
 authors = [
@@ -16,6 +16,7 @@ authors = [
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
+  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
@@ -46,11 +47,11 @@ stubPath = "src/stubs"
 reportMissingImports = true
 reportMissingTypeStubs = true
 
-pythonVersion = "3.11"
+pythonVersion = "3.10"
 pythonPlatform = "Linux"
 
 executionEnvironments = [
-  { root = "src", pythonVersion = "3.11", pythonPlatform = "Linux" },
+  { root = "src", pythonVersion = "3.10", pythonPlatform = "Linux" },
   { root = "tests" },
   { root = "src" }
 ]
@@ -76,7 +77,7 @@ cov = [
 ]
 
 [[tool.hatch.envs.all.matrix]]
-python = ["3.11"]
+python = ["3.10", "3.11"]
 
 [tool.hatch.envs.lint]
 detached = true
