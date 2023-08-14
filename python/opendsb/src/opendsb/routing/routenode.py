@@ -27,8 +27,8 @@ class RouteNode:
             try:
                 #subscription.handler.accept(message)
                 subscription.handler(message)
-            except Exception as exc:
-                logger.debug(f'Exception in RouteNode "{self.topic}": Unable to process message "{message}".'[:500], exc)
+            except Exception as e:
+                logger.debug(f'Exception in RouteNode "{self.topic}": Unable to process message "{message}".'[:500], exc_info=True)
         return True
 
     def subscribe(self, subscription_id: str, handler: Callable) -> Subscription:

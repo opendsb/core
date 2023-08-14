@@ -136,7 +136,7 @@ class RemotePeer(ABC):
             else:
                 logger.warning('Received a connection reply from unknown source. Ignoring.')
         except Exception as e:
-            logger.error('Failure processing a connection request reply.', e)
+            logger.error('Failure processing a connection request reply.', exc_info=True)
             self.notify_connection_failure(e)
 
     def notify_connection_success(self) -> None:
