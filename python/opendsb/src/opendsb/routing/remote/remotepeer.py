@@ -116,8 +116,8 @@ class RemotePeer(ABC):
     def process(self, message: ControlMessage) -> None:
         if message.destination == 'control':
             if message.control_message_type == ControlMessageType.UPDATE_ROUTE_COUNT:
-                route_table_count = json.loads(message.control_info[ControlTokens.ROUTING_TABLE_COUNT])
-                self.remote_routing_table_counter = route_table_count
+                #route_table_count = json.loads(message.control_info[ControlTokens.ROUTING_TABLE_COUNT])
+                self.remote_routing_table_counter = message.control_info[ControlTokens.ROUTING_TABLE_COUNT]
                 return
             if message.control_message_type == ControlMessageType.CONNECTION_REPLY:
                 self.do_connection_reply(message)
