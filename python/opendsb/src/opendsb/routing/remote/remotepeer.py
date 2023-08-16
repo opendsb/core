@@ -116,8 +116,8 @@ class RemotePeer(ABC):
     def process(self, message: ControlMessage) -> None:
         if message.destination == 'control':
             if message.control_message_type == ControlMessageType.UPDATE_ROUTE_COUNT:
-                route_table_count = json.loads(message.control_info[ControlTokens.ROUTING_TABLE_COUNT])
-                self.remote_routing_table_counter = route_table_count
+                #route_table_count = json.loads(message.control_info[ControlTokens.ROUTING_TABLE_COUNT])
+                self.remote_routing_table_counter = message.control_info[ControlTokens.ROUTING_TABLE_COUNT]
                 return
             if message.control_message_type == ControlMessageType.CONNECTION_REPLY:
                 self.do_connection_reply(message)
@@ -136,7 +136,7 @@ class RemotePeer(ABC):
             else:
                 logger.warning('Received a connection reply from unknown source. Ignoring.')
         except Exception as e:
-            logger.error('Failure processing a connection request reply.', e)
+            logger.error('Failure processing a connection request reply.', exc_info=True)
             self.notify_connection_failure(e)
 
     def notify_connection_success(self) -> None:

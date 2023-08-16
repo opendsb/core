@@ -101,7 +101,7 @@ class DefaultRouter(Router):
                 ack = ControlMessage(self.id, message.reply_to, ControlMessageType.CALL_ACK, {'transactionId': message.id})
                 self.route_message(ack)
             except Exception as e:
-                logger.warning(f'Unable to route ack message "{ack}"', e)
+                logger.warning(f'Unable to route ack message "{ack}"', exc_info=True)
         node = self.routing_table[destination]
         node.accept(message)
 
@@ -147,7 +147,7 @@ class DefaultRouter(Router):
             remote_peer = WebSocketPeer(self, address)
             return remote_peer.connect()
         except Exception as e:
-            logger.warning(f'Failure establishing connection to address "{address}"', e)
+            logger.warning(f'Failure establishing connection to address "{address}"', exc_info=True)
             #raise IOError(f'Unable to establish connection with server at "{address}"', e)
             return ''
 
@@ -158,7 +158,7 @@ class DefaultRouter(Router):
         try:
             peer.send_message(message)
         except Exception as e:
-            logger.error(f'Failed to send message to remote peer "{peer}"', e)
+            logger.error(f'Failed to send message to remote peer "{peer}"', exc_info=True)
     
     def add_peer(self, peer: RemotePeer) -> None:
         self.remote_peers[peer.connection_id] = peer
