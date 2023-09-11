@@ -41,12 +41,20 @@ class Message(ABC):
     deep_decoder = deep_decoder
 
     @staticmethod
-    def get_value(value):
-        if isinstance(value, Enum):
-            return value.value
+    def get_value(obj):
+        if isinstance(obj, Enum):
+            return obj.value
+        elif isinstance(obj, list):
+            if len(obj) > 0 :
+                # Verifica todos os elementos da lista. Devem ser tipo `dict`
+                for item in obj:
+                    if not isinstance(item, dict):
+                        print(f'-------------------------------------------------------------------')
+                        print(f'Error: {item} is not a valid type (DefaultData|TypedCollection)')
+                        print(f'-------------------------------------------------------------------')
+                    return obj
         else:
-            return value
-
+            return obj
 
     def __init__(self, 
                 origin: str,
@@ -60,13 +68,9 @@ class Message(ABC):
         self.latest_hop = ''
 
     def to_json(self) -> str:
-        mapped_message = {Message.ATTR_MAP[attr] : Message.get_value(value) for attr, value in vars(self).items()}
+        # Convert all elements of self.parameters to dict
+        self.parameters = [item.to_dict() for item in self.parameters]
+        # print(f'self.parameters = {self.parameters}, type(self.parameters[0]) = {type(self.parameters[0])}')
+        mapped_message = {Message.ATTR_MAP[attr]:
+            Message.get_value(obj) for attr, obj in vars(self).items()}
         return json.dumps(mapped_message)
-    
-    
-
-
-
-# Java json messages
-#{"controlMessageType":"CONNECTION_REQUEST","controlInfo":{"clientId":"Router_0cb10c6c-fb71-4445-87b6-8b568a21877a","routingTableCount":"{}","transactionId":"ConnectionRequest_1b766c16-db28-4bb4-afee-69619d230f98"},"messageId":"a8aab502-cbbe-4f4d-a26f-1636c76598e0","type":"CONTROL","origin":"Router_0cb10c6c-fb71-4445-87b6-8b568a21877a","destination":"control","latestHop":"Router_0cb10c6c-fb71-4445-87b6-8b568a21877a"}
-#{"controlMessageType":"UPDATE_ROUTE_COUNT","controlInfo":{"routingTableCount":"{\"a/b/c\":1,\"reply-a384f9f1-9a3f-4d86-8ff4-afe8c7ffb846/c/getSample\":0}","transactionId":"1727f16b-7575-4f96-a650-be26db940a53"},"messageId":"ea95ac50-edbb-43ea-b393-311ed5b66c7d","type":"CONTROL","origin":"reply-a384f9f1-9a3f-4d86-8ff4-afe8c7ffb846/c/getSample@Router_c0768134-ea90-4193-a854-3ee4c06dc536","destination":"control","latestHop":"Router_c0768134-ea90-4193-a854-3ee4c06dc536"}
