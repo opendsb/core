@@ -1,5 +1,6 @@
 
 from abc import ABC
+from collections.abc import Iterable
 import json
 from typing import Any
 
@@ -24,7 +25,13 @@ class DefaultData(TypedData):
             'dataType': self.dataType,
             'concreteType': self.concreteType
         }
-
+    
+    def __str__(self) -> str:
+        return f'{self.to_dict()}'
+    
+    def __dict__(self) -> dict:
+        return self.to_dict()
+    
 
 class TypedCollection(TypedData):
     def __init__(self, data: Any, collectionGenericType: str, collectionRawType: str) -> None:
@@ -47,6 +54,12 @@ class TypedCollection(TypedData):
             'collectionRawType': self.collectionRawType,
             'collectionGenericType': self.collectionGenericType
         }
+    
+    def __str__(self) -> str:
+        return f'{self.to_dict()}'
+    
+    def __dict__(self) -> dict:
+        return self.to_dict()
 
 
 class DataMessage(BaseMessage):

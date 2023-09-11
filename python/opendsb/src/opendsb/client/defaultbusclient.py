@@ -6,10 +6,10 @@ from threading import Timer
 from typing import Callable, Union
 
 from .busclient import BusClient, Result
-from .subscription import Subscription
+from opendsb.client.subscription import Subscription
 from ..messaging.callmessage import CallMessage
 from ..messaging.controlmessage import ControlMessage, ControlMessageType
-from ..messaging.datamessage import DataMessage
+from ..messaging.datamessage import DataMessage, TypedData
 from ..messaging.message import Message
 from ..messaging.replymessage import ReplyMessage
 from ..routing.router import Router
@@ -74,7 +74,7 @@ class DefaultBusClient(BusClient):
         logger.debug(f'Publishing reply message: "{reply_message}"')
         self.router.route_message(reply_message, True)
 
-    def call_and_wait(self, topic: str, parameters: list[str], timeout: float) -> Result:
+    def call_and_wait(self, topic: str, parameters: list[TypedData], timeout: float) -> Result:
         
         response = self.call(topic, parameters)
 
@@ -97,7 +97,7 @@ class DefaultBusClient(BusClient):
 
         return result
 
-    def call(self, topic: str, parameters: list[str]) -> Future:
+    def call(self, topic: str, parameters: list[TypedData]) -> Future:
         '''Call a method'''
         logger.debug(f'Calling "{topic}" with parameters "{parameters}"')
         reply_to = f'reply-{self.router.generate_subid()}/{topic}'

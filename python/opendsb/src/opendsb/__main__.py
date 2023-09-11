@@ -49,8 +49,8 @@ def local_test_case():
     #client.publish_data('C', 'Hello New World!')
     
     logger.info('Making a Call wih parameters...')
-    response = client.call('A/B', ['Client call param 1', 'Client call param 2'])
-    #response = client.call('C', ['Hello World!'])
+    response = client.call('A/B', [DefaultData('Client call param 1', 'java.lang.String'), DefaultData('Client call param 2', 'java.lang.String')])
+    #response = client.call('C', [DefaultData('Hello World!', 'java.lang.String')])
 
     logger.info('Waiting response for Client Call...')
 
@@ -92,7 +92,7 @@ def remote_test_case():
    
     logger.info('DEBUGRAFA: Executando sem sleep')
 
-#    response = client.call('c/getSample', [])
+#    response = client.call('c/getSample', []) # a lista nao pode ser vazia
 #
 #    logger.info('Waiting response for Client Call...')
 #

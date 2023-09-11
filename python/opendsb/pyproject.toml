@@ -24,7 +24,8 @@ classifiers = [
 dependencies = [
   "websocket-client>=1.5.2",
   "keyring",
-  "keyrings.google-artifactregistry-auth"
+  "keyrings.google-artifactregistry-auth",
+  "pyright"
 ]
 
 [project.urls]

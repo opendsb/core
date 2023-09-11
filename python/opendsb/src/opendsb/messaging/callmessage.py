@@ -1,5 +1,7 @@
 
 import json
+
+from opendsb.messaging.datamessage import TypedData
 from .basemessage import BaseMessage
 from .message import MessageType
 
@@ -8,13 +10,15 @@ class CallMessage(BaseMessage):
     def __init__(self, 
                  destination: str, 
                  origin: str, 
-                 parameters: list[str | dict | list | int | float | bool | None] | None, 
+                 parameters: list[TypedData], 
                  reply_to: str,
                  id: str | None = None,
-                 latest_hop: str | None = None,
-                 type: MessageType = MessageType.CALL
+                 latest_hop: str | None = None
         ):
-        super().__init__(origin=origin, destination=destination, type=type, id=id, latest_hop=latest_hop)
+        super().__init__(origin=origin, destination=destination, type=MessageType.CALL, id=id, latest_hop=latest_hop)
+        assert isinstance(parameters, list), 'Parameters must be a list'
+        assert len(parameters) > 0, 'Parameters must not be empty'
+        assert all(isinstance(param, TypedData) for param in parameters), 'Parameters must be TypedData'
         self.parameters = parameters
         self.reply_to = reply_to
 

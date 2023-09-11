@@ -1,10 +1,8 @@
 from concurrent.futures import ThreadPoolExecutor
-import json
 import logging
 import threading
-import time
 import uuid
-import websocket
+import websocket # type: ignore
 
 from ....messaging.message import Message
 from ..remotepeer import RemotePeer, Router

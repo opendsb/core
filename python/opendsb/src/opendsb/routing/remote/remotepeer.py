@@ -192,4 +192,6 @@ class RemotePeer(ABC):
                 message = CallMessage.from_json(json_message)
             case 'REPLY':
                 message = ReplyMessage.from_json(json_message)
+            case _:
+                raise Exception(f'Unknown message type "{message_dict["type"]}"')
         return message

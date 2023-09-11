@@ -4,7 +4,8 @@ from abc import ABC, abstractmethod
 from concurrent.futures import Future
 from typing import Callable, Any
 
-from .subscription import Subscription
+from opendsb.messaging.datamessage import TypedData
+from opendsb.client.subscription import Subscription
 
 
 class Result:
@@ -34,10 +35,10 @@ class BusClient(ABC):
         '''Publish data to a topic'''
 
     @abstractmethod
-    def call(self, topic: str, parameters: list[str]) -> Future:
+    def call(self, topic: str, parameters: list[TypedData]) -> Future:
         '''Call a method'''
 
     @abstractmethod
-    def call_and_wait(self, topic: str, parameters: list[str], timeout: float) -> Result:
+    def call_and_wait(self, topic: str, parameters: list[TypedData], timeout: float) -> Result:
         '''Call a method and wait for the response'''
 
