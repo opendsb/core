@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 
 import json
 
 from opendsb.messaging.datamessage import TypedData
-from .basemessage import BaseMessage
-from .message import MessageType
+from opendsb.messaging.basemessage import BaseMessage
+from opendsb.messaging.message import MessageType
 
 
 class CallMessage(BaseMessage):

@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
+
 from abc import ABC
 from enum import Enum
 import json
 
-from .jsondecoder import deep_decoder
+from opendsb.messaging.datatypes import TypedData
+from opendsb.messaging.jsondecoder import deep_decoder
 
 
 class MessageType(Enum):
@@ -44,15 +47,8 @@ class Message(ABC):
     def get_value(obj):
         if isinstance(obj, Enum):
             return obj.value
-        elif isinstance(obj, list):
-            if len(obj) > 0 :
-                # Verifica todos os elementos da lista. Devem ser tipo `dict`
-                for item in obj:
-                    if not isinstance(item, dict):
-                        print(f'-------------------------------------------------------------------')
-                        print(f'Error: {item} is not a valid type (DefaultData|TypedCollection)')
-                        print(f'-------------------------------------------------------------------')
-                    return obj
+        elif isinstance(obj, list) and all(isinstance(item, TypedData) for item in obj):
+            return [item.to_dict() for item in obj]
         else:
             return obj
 
@@ -68,9 +64,7 @@ class Message(ABC):
         self.latest_hop = ''
 
     def to_json(self) -> str:
-        # Convert all elements of self.parameters to dict
-        self.parameters = [item.to_dict() for item in self.parameters]
-        # print(f'self.parameters = {self.parameters}, type(self.parameters[0]) = {type(self.parameters[0])}')
-        mapped_message = {Message.ATTR_MAP[attr]:
-            Message.get_value(obj) for attr, obj in vars(self).items()}
+        mapped_message = {
+            Message.ATTR_MAP[attr]: Message.get_value(obj) for attr, obj in vars(self).items()
+        }
         return json.dumps(mapped_message)

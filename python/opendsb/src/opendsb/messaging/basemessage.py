@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 
 import uuid
 
-from .message import Message
-from .message import MessageType
+from opendsb.messaging.message import Message
+from opendsb.messaging.message import MessageType
 
 
 class BaseMessage(Message):
