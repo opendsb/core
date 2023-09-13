@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from concurrent.futures import Future
-from typing import Callable, Any
+from typing import Callable, Union, Any
 
 from opendsb.messaging.datamessage import TypedData
 from opendsb.client.subscription import Subscription
