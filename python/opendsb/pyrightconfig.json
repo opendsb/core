@@ -37,7 +37,7 @@
     "executionEnvironments": [
       {
         "root": "src",
-        "pythonVersion": "3.11",
+        "pythonVersion": "3.10",
         "pythonPlatform": "Linux"
       },
       {

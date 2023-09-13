@@ -7,6 +7,7 @@ from typing import Callable, Any
 from opendsb.messaging.datamessage import TypedData
 from opendsb.client.subscription import Subscription
 
+Serializable = Union[str, dict, list, int, float, bool, None]
 
 class Result:
     def __init__(self, success: bool, value: Any, reason: str='') -> None:
@@ -27,11 +28,11 @@ class BusClient(ABC):
         '''Cancel a subscription'''
 
     @abstractmethod
-    def publish_data(self, topic: str, data: str) -> None:
+    def publish_data(self, topic: str, data: Serializable) -> None:
         '''Publish data to a topic'''
 
     @abstractmethod
-    def publish_reply(self, topic: str, reply: str) -> None:
+    def publish_reply(self, topic: str, reply: Serializable) -> None:
         '''Publish data to a topic'''
 
     @abstractmethod

@@ -5,7 +5,7 @@ import logging
 from threading import Timer
 from typing import Callable, Union
 
-from .busclient import BusClient, Result
+from .busclient import BusClient, Result, Serializable
 from opendsb.client.subscription import Subscription
 from ..messaging.callmessage import CallMessage
 from ..messaging.controlmessage import ControlMessage, ControlMessageType
@@ -14,8 +14,6 @@ from ..messaging.message import Message
 from ..messaging.replymessage import ReplyMessage
 from ..routing.router import Router
 #from ..utils.dictvalidator import DictValidator
-
-Serializable = Union[str, dict, list, int, float, bool, None]
 
 logger = logging.getLogger('opendsb')
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from abc import ABC
+from abc import ABC, abstractmethod, abstractclassmethod
 from typing import Any
 
 
@@ -9,6 +9,13 @@ class TypedData(ABC):
         self.data = data
         self.concreteType = concreteType
 
+    @abstractmethod
+    def to_dict(self) -> dict:
+        pass
+
+    @abstractclassmethod
+    def from_dict(cls, dct: dict):
+        pass
 
 class DefaultData(TypedData):
     '''DefaultData
@@ -23,7 +30,7 @@ class DefaultData(TypedData):
         super().__init__(data, 'org.opendsb.json.info.DefaultData')
         self.dataType = dataType
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             'data': self.data,
             'dataType': self.dataType,
@@ -55,7 +62,7 @@ class TypedCollection(TypedData):
         self.collectionRawType = collectionRawType # tipo da colecao em si
         self.collectionGenericType = collectionGenericType # tipo do conteudo da colecao
     
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             'data': self.data,
             'concreteType': self.concreteType,
