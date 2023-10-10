@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from abc import ABC, abstractmethod
 from concurrent.futures import Future
@@ -7,12 +8,12 @@ import time
 from typing import Protocol
 import uuid
 
-from ...messaging.controlmessage import ControlMessage
-from ...messaging.datamessage import DataMessage
-from ...messaging.replymessage import ReplyMessage
-from ...messaging.callmessage import CallMessage
-from ...messaging.message import Message
-from ...messaging.controlmessage import ControlMessage, ControlMessageType, ControlTokens
+from opendsb.messaging.controlmessage import ControlMessage
+from opendsb.messaging.datamessage import DataMessage
+from opendsb.messaging.replymessage import ReplyMessage
+from opendsb.messaging.callmessage import CallMessage
+from opendsb.messaging.message import Message
+from opendsb.messaging.controlmessage import ControlMessage, ControlMessageType, ControlTokens
 
 logger = logging.getLogger('opendsb')
 

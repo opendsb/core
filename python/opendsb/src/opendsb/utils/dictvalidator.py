@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 
 #TODO: Adicionar validador de tipos dos atributos
 
@@ -11,6 +11,3 @@ class DictValidator:
         for attr in schema:
             if attr not in dictionary:
                 raise Exception(f'Attribute "{attr}" not found in an instance of the class "{dict_id}"')
-        
-    
-

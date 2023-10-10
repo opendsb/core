@@ -1,14 +1,14 @@
+# -*- coding: utf-8 -*-
+
 #from logging.handlers import RotatingFileHandler
 import logging
-import json
 import random
 import time
 
-from .messaging.callmessage import CallMessage
-from .client.defaultbusclient import DefaultBusClient
-from .routing.defaultrouter import DefaultRouter
-from .utils.dictvalidator import DictValidator
-from .messaging.datamessage import DefaultData
+from opendsb.messaging.callmessage import CallMessage
+from opendsb.client.defaultbusclient import DefaultBusClient
+from opendsb.routing.defaultrouter import DefaultRouter
+from opendsb.messaging.datamessage import DefaultData
 
 
 def initialize_logger():

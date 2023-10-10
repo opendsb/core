@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Callable
 import uuid
 
-from ..client.subscription import Subscription
-from ..messaging.message import Message
+from opendsb.client.subscription import Subscription
+from opendsb.messaging.message import Message
 
 
 class Router(ABC):

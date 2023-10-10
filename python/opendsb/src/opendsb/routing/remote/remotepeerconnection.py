@@ -1,8 +1,8 @@
-
+# -*- coding: utf-8 -*-
 
 from concurrent.futures import Future
 
-from .remotepeer import RemotePeer
+from opendsb.routing.remote.remotepeer import RemotePeer
 
 
 class RemotePeerConnection:

@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 
 import json
-from .datamessage import DataMessage
-from .message import MessageType
+
+from opendsb.messaging.datamessage import DataMessage
+from opendsb.messaging.message import MessageType
 
 
 class ReplyMessage(DataMessage):

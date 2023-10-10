@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 """RouteNode class"""
 
 import logging
 from typing import Callable
-from ..client.subscription import Subscription
-from ..messaging.message import Message
+from opendsb.client.subscription import Subscription
+from opendsb.messaging.message import Message
 
 logger = logging.getLogger('opendsb')
 

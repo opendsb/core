@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 
 from enum import Enum
 import json
 
-from .basemessage import BaseMessage
-from .message import MessageType
+from opendsb.messaging.basemessage import BaseMessage
+from opendsb.messaging.message import MessageType
 
 
 class ControlMessageType(Enum):

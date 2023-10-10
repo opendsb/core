@@ -1,18 +1,19 @@
+# -*- coding: utf-8 -*-
+
 from concurrent.futures import ThreadPoolExecutor
 import logging
-import time
 from typing import Callable
 
-from ..client.busclient import BusClient
-from ..client.defaultbusclient import DefaultBusClient
-from ..client.subscription import Subscription
-from ..messaging.message import Message
-from ..messaging.callmessage import CallMessage
-from ..messaging.controlmessage import ControlMessage, ControlMessageType
-from .remote.remotepeer import RemotePeer
-from .remote.ws.websocketpeer import WebSocketPeer
-from .routenode import RouteNode
-from .router import Router
+from opendsb.client.busclient import BusClient
+from opendsb.client.defaultbusclient import DefaultBusClient
+from opendsb.client.subscription import Subscription
+from opendsb.messaging.message import Message
+from opendsb.messaging.callmessage import CallMessage
+from opendsb.messaging.controlmessage import ControlMessage, ControlMessageType
+from opendsb.routing.remote.remotepeer import RemotePeer
+from opendsb.routing.remote.ws.websocketpeer import WebSocketPeer
+from opendsb.routing.routenode import RouteNode
+from opendsb.routing.router import Router
 
 logger = logging.getLogger('opendsb')
 

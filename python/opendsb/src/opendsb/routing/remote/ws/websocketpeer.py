@@ -1,11 +1,13 @@
+# -*- coding: utf-8 -*-
+
 from concurrent.futures import ThreadPoolExecutor
 import logging
 import threading
 import uuid
 import websocket # type: ignore
 
-from ....messaging.message import Message
-from ..remotepeer import RemotePeer, Router
+from opendsb.messaging.message import Message
+from opendsb.routing.remote.remotepeer import RemotePeer, Router
 
 
 logger = logging.getLogger('opendsb')
