@@ -62,7 +62,11 @@ class RemotePeer(ABC):
         self.maximum_reconnect_delay = 60 # seconds
 
     @abstractmethod
-    def wire_connect(self) -> None:
+    def _wire_connect(self) -> None:
+        pass
+
+    @abstractmethod
+    def _wire_close_connection(self, **kwargs) -> None:
         pass
 
     @abstractmethod
@@ -70,9 +74,12 @@ class RemotePeer(ABC):
         pass
 
     def connect(self) -> str:
-        self.wire_connect()
+        self._wire_connect()
         return self.connection_id_future.result(timeout=2)
-    
+
+    def disconnect(self, **kwargs) -> None:
+        self._wire_close_connection(**kwargs)
+
     def reconnect(self) -> None:
         logger.info(f'Reconnecting in "{self.current_reconnect_delay}" seconds')
         self.connection_id_future = Future()

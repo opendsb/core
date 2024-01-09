@@ -169,3 +169,12 @@ class DefaultRouter(Router):
         if peer.connection_id in self.remote_peers:
             self.remote_peers.pop(peer.connection_id)
             logger.debug(f'Peer "{peer}" removed from router "{self}"')
+
+    def disconnect_remote_peer(self, remote_peer_id: str, **kwargs) -> None:
+        self.remote_peers[remote_peer_id].disconnect(**kwargs)
+
+    def disconnect_all_remote_peers(self, **kwargs) -> None:
+        # Thread safe coding
+        peers_ids = list(self.remote_peers.keys())
+        for peer_id in peers_ids:
+            self.disconnect_remote_peer(peer_id, **kwargs)
