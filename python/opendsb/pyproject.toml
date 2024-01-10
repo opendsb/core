@@ -25,7 +25,8 @@ dependencies = [
   "websocket-client>=1.5.2",
   "keyring",
   "keyrings.google-artifactregistry-auth",
-  "pyright"
+  "pyright",
+  "build",
 ]
 
 [project.urls]
