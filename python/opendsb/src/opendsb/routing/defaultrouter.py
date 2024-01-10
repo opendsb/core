@@ -142,7 +142,7 @@ class DefaultRouter(Router):
         logger.info(f'Connecting to remote peer at "{address}"...')
         self.connect_to_remote_router(address)
         return client
-        
+
     def connect_to_remote_router(self, address: str) -> str:
         try:
             remote_peer = WebSocketPeer(self, address)
