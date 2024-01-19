@@ -77,6 +77,7 @@ class DefaultBusClient(BusClient):
         self.router.route_message(reply_message, True)
 
     def call_and_wait(self, topic: str, parameters: list[TypedData], timeout: float) -> Result:
+        self.timeout = timeout
         response = self.call(topic, parameters)
 
         logger.info("Waiting response for Client Call...")

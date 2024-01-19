@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-
 import json
+
 
 def deep_decoder(json_string):
     def _decode_strings(obj):
@@ -17,7 +16,7 @@ def deep_decoder(json_string):
             for item in obj:
                 if isinstance(item, str):
                     try:
-                        item = json.loads(item)
+                        item = json.loads(item)  # noqa: PLW2901
                     except ValueError:
                         pass
                 else:
@@ -29,7 +28,6 @@ def deep_decoder(json_string):
         return json_obj
     except Exception as e:
         raise e
-    #except ValueError as e:
-        #return None
-        #raise e
-
+    # except ValueError as e:
+    # return None
+    # raise e

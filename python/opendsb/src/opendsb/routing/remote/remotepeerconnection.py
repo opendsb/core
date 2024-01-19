@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from concurrent.futures import Future
 
 from opendsb.routing.remote.remotepeer import RemotePeer
@@ -8,7 +6,6 @@ from opendsb.routing.remote.remotepeer import RemotePeer
 class RemotePeerConnection:
     def __init__(self, remote_peer: RemotePeer):
         self.remote_peer = remote_peer
-
 
     def when_connected(self) -> Future:
         connected_future = Future()

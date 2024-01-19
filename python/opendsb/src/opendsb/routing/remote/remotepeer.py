@@ -1,25 +1,23 @@
-# -*- coding: utf-8 -*-
 
-from abc import ABC, abstractmethod
-from concurrent.futures import Future
 import json
 import logging
 import time
-from typing import Protocol
 import uuid
+from abc import ABC, abstractmethod
+from concurrent.futures import Future
+from typing import Protocol
 
-from opendsb.messaging.controlmessage import ControlMessage
-from opendsb.messaging.datamessage import DataMessage
-from opendsb.messaging.replymessage import ReplyMessage
 from opendsb.messaging.callmessage import CallMessage
-from opendsb.messaging.message import Message
 from opendsb.messaging.controlmessage import ControlMessage, ControlMessageType, ControlTokens
+from opendsb.messaging.datamessage import DataMessage
+from opendsb.messaging.message import Message
+from opendsb.messaging.replymessage import ReplyMessage
 
-logger = logging.getLogger('opendsb')
+logger = logging.getLogger("opendsb")
 
 
 class Router(Protocol):
-    
+
     @property
     def id(self) -> str:
         ...
@@ -48,12 +46,12 @@ class RemotePeer(ABC):
     def __init__(self, router: Router, address: str):
         self.router = router
         self.address = address
-        self.remote_routing_table_counter = {'control': 1}
+        self.remote_routing_table_counter = {"control": 1}
         self.bus_connected: bool = False
         self.wire_connected: bool = False
-        self.pending_bus_connection_id: str = ''
-        self.peer_id: str = ''
-        self.connection_id: str = ''
+        self.pending_bus_connection_id: str = ""
+        self.peer_id: str = ""
+        self.connection_id: str = ""
         self.connected_futures: list[Future] = []
         self.disconnected_futures: list[Future] = []
         self.connection_id_future: Future = Future()
@@ -101,10 +99,10 @@ class RemotePeer(ABC):
     def is_remote_peer_interested(self, destination: str) -> bool:
         interested = False
         pieces = destination.split(self.router.separator)
-        partial_destination = ''
+        partial_destination = ""
         for piece in pieces:
             partial_destination = partial_destination + piece
-            if partial_destination in self.remote_routing_table_counter and self.remote_routing_table_counter[partial_destination] > 0:
+            if partial_destination in self.remote_routing_table_counter and self.remote_routing_table_counter[partial_destination] > 0:  # noqa: E501
                 interested = True
                 break
             partial_destination = partial_destination + self.router.separator
@@ -114,15 +112,15 @@ class RemotePeer(ABC):
         if isinstance(message, CallMessage):
             reply_to = message.reply_to
             self.remote_routing_table_counter[reply_to] = 1
-            
+
         if isinstance(message, ControlMessage):
             self.process(message)
             return
-        
+
         self.router.route_message(message, True)
 
     def process(self, message: ControlMessage) -> None:
-        if message.destination == 'control':
+        if message.destination == "control":
             if message.control_message_type == ControlMessageType.UPDATE_ROUTE_COUNT:
                 #route_table_count = json.loads(message.control_info[ControlTokens.ROUTING_TABLE_COUNT])
                 self.remote_routing_table_counter = message.control_info[ControlTokens.ROUTING_TABLE_COUNT]
@@ -142,9 +140,9 @@ class RemotePeer(ABC):
                 self.bus_connected = True
                 self.notify_connection_success()
             else:
-                logger.warning('Received a connection reply from unknown source. Ignoring.')
+                logger.warning("Received a connection reply from unknown source. Ignoring.")
         except Exception as e:
-            logger.error('Failure processing a connection request reply.', exc_info=True)
+            logger.error("Failure processing a connection request reply.", exc_info=True)
             self.notify_connection_failure(e)
 
     def notify_connection_success(self) -> None:
@@ -164,12 +162,12 @@ class RemotePeer(ABC):
 
     def connection_opened(self) -> None:
         self.wire_connected = True
-        self.pending_bus_connection_id = f'ConnectionRequest_{uuid.uuid4()}'
-        
+        self.pending_bus_connection_id = f"ConnectionRequest_{uuid.uuid4()}"
+
         connection_request = ControlMessage(
-            origin=self.router.id, 
-            destination='control', 
-            control_message_type=ControlMessageType.CONNECTION_REQUEST, 
+            origin=self.router.id,
+            destination="control",
+            control_message_type=ControlMessageType.CONNECTION_REQUEST,
             control_info={
                 ControlTokens.TRANSACTION_ID: self.pending_bus_connection_id,
                 ControlTokens.CLIENT_ID: self.router.id,
@@ -191,15 +189,16 @@ class RemotePeer(ABC):
     @staticmethod
     def build_message(json_message: str) -> Message:
         message_dict = json.loads(json_message)
-        match message_dict['type']:
-            case 'CONTROL':
+        match message_dict["type"]:
+            case "CONTROL":
                 message = ControlMessage.from_json(json_message)
-            case 'PUBLISH':
+            case "PUBLISH":
                 message = DataMessage.from_json(json_message)
-            case 'CALL':
+            case "CALL":
                 message = CallMessage.from_json(json_message)
-            case 'REPLY':
+            case "REPLY":
                 message = ReplyMessage.from_json(json_message)
             case _:
-                raise Exception(f'Unknown message type "{message_dict["type"]}"')
+                msg = f'Unknown message type "{message_dict["type"]}"'
+                raise Exception(msg)
         return message
