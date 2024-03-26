@@ -1,8 +1,8 @@
 import json
 
 
-def deep_decoder(json_string):
-    def _decode_strings(obj):
+def deep_decoder(json_string: str | bytes | bytearray) -> dict | list | None:
+    def _decode_strings(obj: dict | list):
         if isinstance(obj, dict):
             for key, value in obj.items():
                 if isinstance(value, str):

@@ -1,6 +1,7 @@
 import json
 from abc import ABC
 from enum import Enum
+from typing import Any
 
 from opendsb.messaging.datatypes import TypedData
 from opendsb.messaging.jsondecoder import deep_decoder
@@ -42,7 +43,7 @@ class Message(ABC):
     deep_decoder = deep_decoder
 
     @staticmethod
-    def get_value(obj):
+    def get_value(obj) -> Any:
         if isinstance(obj, Enum):
             return obj.value
         elif isinstance(obj, list) and all(isinstance(item, TypedData) for item in obj):
