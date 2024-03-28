@@ -19,26 +19,27 @@ from opendsb.routing.router import Router
 logger = logging.getLogger("opendsb")
 
 
+# TODO: Criar Type Alias ReplyHandler para Callable[[Message], None]
 def reply_handler(response: Future, topic: str, subscription_id: str, router: Router) -> Callable:
     """ReplyHandler implementation for OpenDSB"""
 
-    def accept(message: Message):
+    def accept(message: Message) -> None:
         logger.debug("Entered ReplyHandler")
-        if not isinstance(message, ReplyMessage):
-            return None
-        response.set_result(message)
-        router.unsubscribe(topic, subscription_id)
+        if isinstance(message, ReplyMessage):
+            response.set_result(message)
+            router.unsubscribe(topic, subscription_id)
 
     return accept
 
 
+# TODO: Criar Type Alias AckHandler para Callable[[Message], None]
 def ack_handler(timeout: Timer, topic: str, ack_subscription_id: str, router: Router) -> Callable:
     """AckHandler implementation for OpenDSB"""
 
-    def accept(message: Message):
+    def accept(message: Message) -> None:
         logger.debug("Entered AckHandler")
         if not isinstance(message, ControlMessage) or message.control_message_type != ControlMessageType.CALL_ACK:
-            return None
+            return
         timeout.cancel()
         router.unsubscribe(topic, ack_subscription_id)
 
