@@ -138,7 +138,7 @@ public class WebSocketPeer extends RemotePeer implements MessageHandler.Whole<St
 			logger.trace("decoding full message: " + message);
 			messageReceived(coder.decode(message));
 		} catch (Throwable e) {
-			logger.error("Error decoding message", e);
+			logger.error("Error decoding message: " + "'" + message + "'", e);
 		}
 	}
 }
