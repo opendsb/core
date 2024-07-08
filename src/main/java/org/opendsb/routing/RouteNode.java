@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import org.apache.log4j.Logger;
+
 import org.opendsb.messaging.CallMessage;
 import org.opendsb.messaging.ControlMessage;
 import org.opendsb.messaging.Message;
@@ -61,7 +62,7 @@ public class RouteNode implements Comparable<RouteNode> {
 			try{
 				h.getConsumer().accept(message);
 			} catch (Exception e) {
-				logger.error("Uanble to process message", e);
+				logger.error("Unable to process message: '" + message + "'", e);
 			}
 		});
 		return true;
