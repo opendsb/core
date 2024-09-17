@@ -34,15 +34,16 @@ class WebSocketPeer(RemotePeer):
         WebSocketPeer.websocket_pool.submit(self._wire_connect_task)
 
     def on_open(self, wsapp):
-        logger.debug("Websocket Connection opened")
+        logger.debug("WebsocketPeer on_open(): Connection opened")
         self.wire_connected = True
         self.current_reconnect_delay = self.initial_reconnect_delay
         self.connection_id = "Connection-" + str(uuid.uuid4())
         self.connection_opened()
 
     def on_message(self, wsapp, json_message: str):
-        # logger.debug(f"Websocket Message received: '{json_message}'"[:500])
-        # logger.debug(f"Websocket Message received: '{json_message}'")
+        if json_message:
+            str_tmp = json_message[:500]
+            logger.debug(f"WebsocketPeer on_message(): '{str_tmp}...'")
         message = self.build_message(json_message)
         self.message_received(message)
 
@@ -56,7 +57,7 @@ class WebSocketPeer(RemotePeer):
             self.connection_closed(close_status_code, close_msg)
 
     def on_error(self, wsapp, error):
-        # logger.warning(f'Error detected on bus remote connection to peer "{self.peer_id}" ', exc_info=error)
+        logger.warning(f'Error detected on bus remote connection to peer "{self.peer_id}" ', exc_info=error)
         if isinstance(error, (websocket.WebSocketConnectionClosedException, TimeoutError, ConnectionRefusedError)):
             logger.warning(f'Error detected on bus remote connection to peer "{self.peer_id}" | "{type(error)}"')
             with self.lock:
@@ -75,5 +76,8 @@ class WebSocketPeer(RemotePeer):
 
     def wire_send_message(self, message: Message) -> None:
         message_str = message.to_json()
+        logger.debug(f"WebsocketPeer wire_send_message() - Message will be send: '{message_str}'")
         self.session.send(message_str)
-        logger.debug(f"Websocket Message sent: '{message_str}'")
+        logger.debug("WebsocketPeer wire_send_message() - Message sent")
+
+
