@@ -75,9 +75,19 @@ class WebSocketPeer(RemotePeer):
             logger.error("Error while closing websocket connection", exc_info=True)
 
     def wire_send_message(self, message: Message) -> None:
-        message_str = message.to_json()
+        try:
+            message_str = message.to_json()
+        except Exception as e:
+            print(
+                "WebsocketPeer wire_send_message() - "
+                f"Fail to convert from Message object to JSON String '{message}' - {e}",
+                flush=True,
+            )
+            logger.info(
+                f"WebsocketPeer wire_send_message() - JSON:s Fail to convert from Message to JSON String '{message}'"
+            )
+            raise Exception("Fail to convert from Message type to JSON String")
+
         logger.debug(f"WebsocketPeer wire_send_message() - Message will be send: '{message_str}'")
         self.session.send(message_str)
         logger.debug("WebsocketPeer wire_send_message() - Message sent")
-
-
