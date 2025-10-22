@@ -1,5 +1,6 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor
+import queue
 from typing import Callable
 
 from opendsb.client.busclient import BusClient
@@ -30,6 +31,7 @@ class DefaultRouter(Router):
 
     def __init__(self):
         super().__init__()
+        self._error_queue = queue.Queue()
         self.separator: str = "/"  # Topic/Destination separator
         self.routing_table: dict[str, RouteNode] = {}  # dict[Address/Topic/Destination, "Listeners": RouteNode]
         self.executor: ThreadPoolExecutor = ThreadPoolExecutor(max_workers=5)
@@ -99,8 +101,11 @@ class DefaultRouter(Router):
                     self.id, message.reply_to, ControlMessageType.CALL_ACK, {"transactionId": message.id}
                 )
                 self.route_message(ack)
-            except Exception:
+            except Exception as ex:
                 logger.warning(f'Unable to route ack message "{ack}"', exc_info=True)
+                if self._error_queue:
+                    self._error_queue.put(ex)
+
         node = self.routing_table[destination]
         node.accept(message)
 
@@ -129,23 +134,29 @@ class DefaultRouter(Router):
     def get_remote_peer(self, remote_peer_id: str) -> RemotePeer:
         return self.remote_peers[remote_peer_id]
 
-    def connect_to_remote(self, address: str) -> BusClient:
+    def connect_to_remote(self, address: str, error_queue: queue.Queue=None) -> BusClient:
         logger.info("Starting OpenDSB...")
+        if error_queue is None:
+          error_queue = self._error_queue
 
         logger.info("Creating client...")
         client = DefaultBusClient(self)
 
         logger.info(f'Connecting to remote peer at "{address}"...')
-        self.connect_to_remote_router(address)
+        self.connect_to_remote_router(address, error_queue)
         return client
 
-    def connect_to_remote_router(self, address: str) -> str:
+    def connect_to_remote_router(self, address: str, error_queue: queue.Queue=None) -> str:
+        if error_queue is None:
+          error_queue = self._error_queue
+
         try:
-            remote_peer = WebSocketPeer(self, address)
+            remote_peer = WebSocketPeer(self, address, error_queue)
             return remote_peer.connect()
-        except Exception:
+        except Exception as ex:
             logger.warning(f'Failure establishing connection to address "{address}"', exc_info=True)
             # raise IOError(f'Unable to establish connection with server at "{address}"', e)
+            error_queue.put(ex)
             return ""
 
     def route_message_to_peer(self, message: Message, peer: RemotePeer) -> None:
@@ -154,8 +165,10 @@ class DefaultRouter(Router):
     def _route_message_to_peer_task(self, message: Message, peer: RemotePeer) -> None:
         try:
             peer.send_message(message)
-        except Exception:
+        except Exception as ex:
             logger.error(f'Failed to send message to remote peer "{peer}"', exc_info=True)
+            if self._error_queue:
+                self._error_queue.put(ex)
 
     def add_peer(self, peer: RemotePeer) -> None:
         self.remote_peers[peer.connection_id] = peer

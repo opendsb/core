@@ -8,7 +8,7 @@ import time
 from opendsb.messaging.callmessage import CallMessage
 from opendsb.client.defaultbusclient import DefaultBusClient
 from opendsb.routing.defaultrouter import DefaultRouter
-from opendsb.messaging.datamessage import DefaultData
+from opendsb.messaging.datatypes import DefaultData
 
 
 def initialize_logger():
@@ -25,7 +25,7 @@ def initialize_logger():
 
 def local_test_case():
     '''DEPRECATED'''
-    
+
     logger.info('Starting OpenDSB...')
 
     logger.info('Creating router...')
@@ -47,7 +47,7 @@ def local_test_case():
     logger.info('Publishing data to subscribed topics...')
     client.publish_data('A/B', 'Hello World!')
     #client.publish_data('C', 'Hello New World!')
-    
+
     logger.info('Making a Call wih parameters...')
     response = client.call('A/B', [DefaultData('Client call param 1', 'java.lang.String'), DefaultData('Client call param 2', 'java.lang.String')])
     #response = client.call('C', [DefaultData('Hello World!', 'java.lang.String')])
@@ -62,7 +62,7 @@ def local_test_case():
     except Exception as e:
         logger.warning(f'Exception: {e}')
 
-    sleep = 20    
+    sleep = 20
     logger.info(f'Sleeping for {sleep} seconds to wait complete execution...')
     for i in range(sleep):
         logger.info(f'{sleep - i} seconds remaining...')
@@ -89,7 +89,7 @@ def remote_test_case():
     logger.info(f'Connecting to remote peer at "{address}"...')
     router.connect_to_remote_router(address)
 
-   
+
     logger.info('DEBUGRAFA: Executando sem sleep')
 
 #    response = client.call('c/getSample', []) # a lista nao pode ser vazia
@@ -178,7 +178,7 @@ def remote_test_case_connect():
 
     logger.info('Creating router...')
     router = DefaultRouter()
-    
+
     address = 'ws://localhost:8080/open-dsb/bus'
     client = router.connect_to_remote(address)
 
@@ -189,9 +189,6 @@ def remote_test_case_connect():
     print(data_dict)
 
     #TODO: criar um metodo shutdown
-
-
-
 
 
 def main():

@@ -2,11 +2,13 @@ import logging
 import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+import queue
 
 import websocket  # type: ignore
 
 from opendsb.messaging.message import Message
 from opendsb.routing.remote.remotepeer import RemotePeer, Router
+from opendsb import WebSocketConnectionLost
 
 logger = logging.getLogger("opendsb")
 
@@ -14,8 +16,9 @@ logger = logging.getLogger("opendsb")
 class WebSocketPeer(RemotePeer):
     websocket_pool = ThreadPoolExecutor(max_workers=5)  # Define a quantidada maxima de vizinhos simultaneos
 
-    def __init__(self, router: Router, address: str):
+    def __init__(self, router: Router, address: str, error_queue: queue.Queue=None):
         super().__init__(router, address)
+        self._error_queue = error_queue
         self.session: websocket.WebSocketApp = None
         self.lock = threading.Lock()
         self.kill_peer = False
@@ -63,7 +66,15 @@ class WebSocketPeer(RemotePeer):
             with self.lock:
                 self.reconnect()
         else:
-            logger.error("Error detected", exc_info=True)
+            logger.error(f"Error detected {wsapp}/'{type(error)}'. Lançando Exception ", exc_info=True)
+            ex = WebSocketConnectionLost(code=1001,
+              message="O peer fechou a conexão.",
+              original_exception_class=str(type(error))
+            )
+            logger.info(f"Lançando Exception {str(ex)}")
+            if self._error_queue:
+                self._error_queue.put(ex)
+            raise ex
 
     def _wire_close_connection(self, **kwargs) -> None:
         try:
@@ -71,8 +82,10 @@ class WebSocketPeer(RemotePeer):
             if "kill_peer" in kwargs:
                 self.kill_peer = kwargs["kill_peer"]
             logger.debug("Closing websocket connection")
-        except Exception:
+        except Exception as e:
             logger.error("Error while closing websocket connection", exc_info=True)
+            if self._error_queue:
+                self._error_queue.put(e)
 
     def wire_send_message(self, message: Message) -> None:
         try:
@@ -86,6 +99,9 @@ class WebSocketPeer(RemotePeer):
             logger.info(
                 f"WebsocketPeer wire_send_message() - JSON:s Fail to convert from Message to JSON String '{message}'"
             )
+            if self._error_queue:
+                self._error_queue.put(e)
+
             raise Exception("Fail to convert from Message type to JSON String")
 
         logger.debug(f"WebsocketPeer wire_send_message() - Message will be send: '{message_str}'")
