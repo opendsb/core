@@ -23,15 +23,15 @@ class DefaultRouter(Router):
     Comments in Portuguese:
         Os enderecos de roteamento podem ser representados a partir de uma arvore
         Para aproveitar a velocidade de acesso de uma hashtable (dict) esta arvore esta representada em mapa
-        Cada par (chave:valor) do mapa representa um no da arvore
+        Cada par (chave: valor) do mapa representa um no da arvore
         Cada no da arvore possui um conjunto de inscricoes (subscribers)
         Cada inscricao possui um handler (listener)
         routing_table: dict[Address: str, "Listeners": RouteNode]
     """
 
-    def __init__(self):
+    def __init__(self, error_queue: queue.Queue = None,):
         super().__init__()
-        self._error_queue = queue.Queue()
+        self._error_queue = error_queue
         self.separator: str = "/"  # Topic/Destination separator
         self.routing_table: dict[str, RouteNode] = {}  # dict[Address/Topic/Destination, "Listeners": RouteNode]
         self.executor: ThreadPoolExecutor = ThreadPoolExecutor(max_workers=5)
@@ -134,10 +134,14 @@ class DefaultRouter(Router):
     def get_remote_peer(self, remote_peer_id: str) -> RemotePeer:
         return self.remote_peers[remote_peer_id]
 
+    # TODO: usar error_queue do construtor
     def connect_to_remote(self, address: str, error_queue: queue.Queue=None) -> BusClient:
-        logger.info("Starting OpenDSB...")
+        logger.info("Starting OpenDSB... ")
         if error_queue is None:
-          error_queue = self._error_queue
+            error_queue = self._error_queue
+        else:
+            # error_queue recebido aqui é mandatório
+            self._error_queue = error_queue
 
         logger.info("Creating client...")
         client = DefaultBusClient(self)
@@ -146,17 +150,20 @@ class DefaultRouter(Router):
         self.connect_to_remote_router(address, error_queue)
         return client
 
-    def connect_to_remote_router(self, address: str, error_queue: queue.Queue=None) -> str:
+    def connect_to_remote_router(self, address: str, error_queue: queue.Queue = None) -> str:
         if error_queue is None:
-          error_queue = self._error_queue
-
+            error_queue = self._error_queue
+        else:
+            # error_queue recebido aqui é mandatório
+            self._error_queue = error_queue
+        logger.info(f"#WODDR =========  {id(self._error_queue)} <- {id(error_queue)}")
         try:
             remote_peer = WebSocketPeer(self, address, error_queue)
             return remote_peer.connect()
         except Exception as ex:
             logger.warning(f'Failure establishing connection to address "{address}"', exc_info=True)
-            # raise IOError(f'Unable to establish connection with server at "{address}"', e)
             error_queue.put(ex)
+            raise IOError(f'Unable to establish connection with server at "{address}"', ex)
             return ""
 
     def route_message_to_peer(self, message: Message, peer: RemotePeer) -> None:
