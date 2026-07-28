@@ -156,15 +156,18 @@ class DefaultRouter(Router):
         else:
             # error_queue recebido aqui é mandatório
             self._error_queue = error_queue
-        logger.info(f"#WODDR =========  {id(self._error_queue)} <- {id(error_queue)}")
+        logger.debug(f"connect_to_remote_router: error_queue {id(self._error_queue)} <- {id(error_queue)}")
         try:
             remote_peer = WebSocketPeer(self, address, error_queue)
             return remote_peer.connect()
         except Exception as ex:
             logger.warning(f'Failure establishing connection to address "{address}"', exc_info=True)
-            error_queue.put(ex)
-            raise IOError(f'Unable to establish connection with server at "{address}"', ex)
-            return ""
+            # error_queue é opcional: clientes antigos (p.ex. gamma_py_connector 1.0.15)
+            # instanciam DefaultRouter() sem fila. Sem esta guarda, o put() lançaria
+            # AttributeError e mascararia a exceção real da falha de conexão.
+            if error_queue is not None:
+                error_queue.put(ex)
+            raise IOError(f'Unable to establish connection with server at "{address}"', ex) from ex
 
     def route_message_to_peer(self, message: Message, peer: RemotePeer) -> None:
         self.executor.submit(self._route_message_to_peer_task, message, peer)

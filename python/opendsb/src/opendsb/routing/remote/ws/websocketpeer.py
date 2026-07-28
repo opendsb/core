@@ -14,7 +14,18 @@ logger = logging.getLogger("opendsb")
 
 
 class WebSocketPeer(RemotePeer):
-    websocket_pool = ThreadPoolExecutor(max_workers=5)  # Define a quantidada maxima de vizinhos simultaneos
+    # DEPRECADO: mantido apenas para compatibilidade com código que referencie o atributo.
+    # Não é mais usado para executar conexões — ver _connection_thread abaixo.
+    #
+    # Este pool era de CLASSE e, portanto, compartilhado por todas as conexões do
+    # processo. Como on_close() o desligava quando kill_peer estava setado, encerrar
+    # UMA conexão inviabilizava TODAS as conexões seguintes, que passavam a falhar com
+    # "cannot schedule new futures after shutdown".
+    #
+    # Além disso, as threads de um ThreadPoolExecutor não são daemon: como
+    # run_forever() só retorna quando a conexão cai, um peer pendurado impedia o
+    # processo inteiro de encerrar (o atexit do executor ficava preso no join).
+    websocket_pool = ThreadPoolExecutor(max_workers=5)
 
     def __init__(self, router: Router, address: str, error_queue: queue.Queue=None):
         super().__init__(router, address)
@@ -22,6 +33,9 @@ class WebSocketPeer(RemotePeer):
         self.session: websocket.WebSocketApp = None
         self.lock = threading.Lock()
         self.kill_peer = False
+        # Thread dedicada a esta conexão, isolada das demais e daemon, para que uma
+        # conexão pendurada nunca impeça o encerramento do processo.
+        self._connection_thread: threading.Thread | None = None
 
     def _wire_connect_task(self) -> None:
         self.session = websocket.WebSocketApp(
@@ -34,7 +48,12 @@ class WebSocketPeer(RemotePeer):
         self.session.run_forever()
 
     def _wire_connect(self) -> None:
-        WebSocketPeer.websocket_pool.submit(self._wire_connect_task)
+        self._connection_thread = threading.Thread(
+            target=self._wire_connect_task,
+            name=f"opendsb-ws-{self.address}",
+            daemon=True,
+        )
+        self._connection_thread.start()
 
     def on_open(self, wsapp):
         logger.debug("WebsocketPeer on_open(): Connection opened")
@@ -56,7 +75,10 @@ class WebSocketPeer(RemotePeer):
         )
         with self.lock:
             if self.kill_peer:
-                WebSocketPeer.websocket_pool.shutdown(wait=False)
+                # Nada a desligar: a thread desta conexão termina sozinha quando
+                # run_forever() retorna, e é daemon. Antes, desligava-se aqui o pool
+                # de CLASSE, o que inviabilizava qualquer conexão futura do processo.
+                logger.debug(f'Peer "{self.peer_id}" encerrado a pedido (kill_peer).')
             self.connection_closed(close_status_code, close_msg)
 
     def on_error(self, wsapp, error):
@@ -69,7 +91,7 @@ class WebSocketPeer(RemotePeer):
             logger.error(f"Error detected {wsapp}/'{type(error)}'. Lançando Exception ", exc_info=True)
             ex = WebSocketConnectionLost(code=1001,
               message="O peer fechou a conexão.",
-              original_exception_class=str(type(error))
+              original_exception_class_name=str(type(error))
             )
             logger.info(f"Lançando Exception {str(ex)}")
             if self._error_queue:
@@ -78,9 +100,12 @@ class WebSocketPeer(RemotePeer):
 
     def _wire_close_connection(self, **kwargs) -> None:
         try:
-            self.session.close()
+            # A flag precisa estar setada ANTES do close(): on_close() roda na thread da
+            # conexão e pode ser chamado antes do retorno de close(), o que tornava o
+            # encerramento não determinístico.
             if "kill_peer" in kwargs:
                 self.kill_peer = kwargs["kill_peer"]
+            self.session.close()
             logger.debug("Closing websocket connection")
         except Exception as e:
             logger.error("Error while closing websocket connection", exc_info=True)

@@ -58,6 +58,9 @@ class RemotePeer(ABC):
         self.initial_reconnect_delay = 2 # seconds
         self.current_reconnect_delay = 2 # seconds
         self.maximum_reconnect_delay = 60 # seconds
+        # Destinos já reportados como "sem assinante remoto". Evita inundar o log
+        # quando um mesmo tópico é tentado repetidamente (ver send_message).
+        self.unrouteable_destinations: set[str] = set()
 
     @abstractmethod
     def _wire_connect(self) -> None:
@@ -91,7 +94,21 @@ class RemotePeer(ABC):
         destination = message.destination
         interested = self.is_remote_peer_interested(destination)
         if not interested:
-            logger.debug(f"No listeners registered for '{destination}' in remote peer. Skipping!")
+            # A mensagem é descartada aqui e NUNCA chega ao fio. Quem chamou fica
+            # esperando uma resposta que jamais virá, até estourar o timeout — sem
+            # nenhum erro de rede. Em DEBUG isso era invisível na operação normal
+            # (nível INFO) e tornava a falha praticamente indiagnosticável, por isso
+            # o primeiro descarte de cada destino é reportado em WARNING.
+            if destination not in self.unrouteable_destinations:
+                self.unrouteable_destinations.add(destination)
+                logger.warning(
+                    f"No listeners registered for '{destination}' in remote peer "
+                    f"'{self.peer_id}'. Message DISCARDED (not sent over the wire). "
+                    f"Remote routing table announced by the peer: "
+                    f"{sorted(self.remote_routing_table_counter)}"
+                )
+            else:
+                logger.debug(f"No listeners registered for '{destination}' in remote peer. Skipping!")
             return
         logger.debug(f"Sending remote message to '{destination}'")
         self.wire_send_message(message)
@@ -124,6 +141,12 @@ class RemotePeer(ABC):
             if message.control_message_type == ControlMessageType.UPDATE_ROUTE_COUNT:
                 #route_table_count = json.loads(message.control_info[ControlTokens.ROUTING_TABLE_COUNT])
                 self.remote_routing_table_counter = message.control_info[ControlTokens.ROUTING_TABLE_COUNT]
+                # A tabela mudou: destinos antes inalcançáveis podem ter passado a existir.
+                self.unrouteable_destinations.clear()
+                logger.info(
+                    f"Remote routing table updated by peer '{self.peer_id}': "
+                    f"{sorted(self.remote_routing_table_counter)}"
+                )
                 return
             if message.control_message_type == ControlMessageType.CONNECTION_REPLY:
                 self.do_connection_reply(message)
@@ -138,6 +161,15 @@ class RemotePeer(ABC):
                 #self.remote_routing_table_counter = json.loads(message.control_info[ControlTokens.ROUTING_TABLE_COUNT])
                 self.remote_routing_table_counter = message.control_info[ControlTokens.ROUTING_TABLE_COUNT]
                 self.bus_connected = True
+                self.unrouteable_destinations.clear()
+                # Único sinal de que o handshake de BARRAMENTO completou. Sem ele, o log
+                # em nível INFO só mostrava a conexão de FIO (WebSocket aberto), o que
+                # levava a confundir "socket de pé" com "barramento pronto".
+                logger.info(
+                    f"Bus connected to peer '{self.peer_id}' at '{self.address}'. "
+                    f"Remote routing table announced by the peer: "
+                    f"{sorted(self.remote_routing_table_counter)}"
+                )
                 self.notify_connection_success()
             else:
                 logger.warning("Received a connection reply from unknown source. Ignoring.")
